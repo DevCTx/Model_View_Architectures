@@ -1,4 +1,4 @@
-# [Model-View Architectures](Model-View Architectures.md)
+# [Model-View Architectures](README.md)
 
 Understanding structures, purposes and advantages of Model-View architectures may be challenging.
 

@@ -1,4 +1,4 @@
-[Model-View Architectures](../../Model-View Architectures.md) > [Model](../Model.md) > [Generic_Models](Generic_Models.md) 
+[Model-View Architectures](../../README.md) > [Model](../Model.md) > [Generic_Models](Generic_Models.md) 
 
 # Generic Models : 
 
@@ -277,4 +277,4 @@ The printing format will follow the output of the [read format](#read-format) :
 
 ---
 
-[Model-View Architectures](../../Model-View Architectures.md) > [Model](../Model.md) > [Generic_Models](Generic_Models.md)
+[Model-View Architectures](../../README.md) > [Model](../Model.md) > [Generic_Models](Generic_Models.md)

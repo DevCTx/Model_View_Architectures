@@ -1,8 +1,8 @@
-[Model-View Architectures](../Model-View Architectures.md) > [No_Model](No_Model.md)
+[Model-View Architectures](../README.md) > [No_Model](No_Model.md)
 
 # 1. Without Model or View: 
 
-Here is the **first step** of our progress along [Model-View Architectures](../Model-View Architectures.md).
+Here is the **first step** of our progress along [Model-View Architectures](../README.md).
 
 In this first scenario, there are **two separate programs** that **don't share data** or have any interaction.
 
@@ -63,4 +63,4 @@ They only allow to show the 2 programs which will be used to present the integra
 
 ---
 
-[Model-View Architectures](../Model-View Architectures.md) > [No_Model](No_Model.md)    
+[Model-View Architectures](../README.md) > [No_Model](No_Model.md)    

@@ -1,10 +1,10 @@
-[Model-View Architectures.md](../Model-View Architectures.md) > [Model.md](Model.md)
+[Model-View Architectures.md](../README.md) > [Model.md](Model.md)
 
 # 2. With a Model :
 
 In this scenario, we introduce a model that allows the two programs to share data and logic.
 
-It's the **second step** of our progress along [Model-View Architectures](../Model-View Architectures.md).
+It's the **second step** of our progress along [Model-View Architectures](../README.md).
 
 This section explains :
 
@@ -227,4 +227,4 @@ Afterward, they call the ***refresh*** method again.
 
 
 ---
-[Model-View Architectures.md](../Model-View Architectures.md) > [Model.md](Model.md)
+[Model-View Architectures.md](../README.md) > [Model.md](Model.md)
