@@ -195,7 +195,11 @@ and can be used to create, read, update and delete tasks from/to the internal li
 By default, it refers to a ***refresh*** method to call when a notification is received from the system, indicating a 
 modification in the configured file, as defined by the ***Task_CRUD_Model***.
 
+---
+
 ### Refresh Method
+
+![Task_Manager_1_select2_Win](images/Task_Manager_1_select2_Win.png)
 
 In ***Task_Manager_1***, the ***refresh*** method calls an ***update_tasks_from_model*** method, which clear all 
 the current lines of the tree before reinserting them using the ***read*** method of the model.
@@ -208,6 +212,8 @@ the current lines of the tree before reinserting them using the ***read*** metho
 It also calls a ***clear_selection_and_input_fields*** method to clear any potential selections made on the list with 
 the mouse, and refresh the default values in the frame at the bottom of the window.
 
+![Task_Manager_2_select2_Win](images/Task_Manager_2_select2_Win.png)
+
 In ***Task_Manager_2***, the same-named ***update_tasks_from_model*** method is called to update the list by copying 
 the 2 first elements only.
 
@@ -217,6 +223,7 @@ the 2 first elements only.
 It also calls a ***clear_pop_up_and_input_fields*** method to refresh the frame list and reset the scrollbar region 
 according to this new list.
 
+---
 ### Add / Update / Delete Buttons
 
 * The '***Add***' button now calls the ***create*** method of the ***Task_CRUD_Model***
