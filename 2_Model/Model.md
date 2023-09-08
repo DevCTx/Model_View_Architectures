@@ -195,8 +195,6 @@ and can be used to create, read, update and delete tasks from/to the internal li
 By default, it refers to a ***refresh*** method to call when a notification is received from the system, indicating a 
 modification in the configured file, as defined by the ***Task_CRUD_Model***.
 
----
-
 ### Refresh Method
 
 ![Task_Manager_1_select2_Win](images/Task_Manager_1_select2_Win.png)
@@ -223,7 +221,6 @@ the 2 first elements only.
 It also calls a ***clear_pop_up_and_input_fields*** method to refresh the frame list and reset the scrollbar region 
 according to this new list.
 
----
 ### Add / Update / Delete Buttons
 
 * The '***Add***' button now calls the ***create*** method of the ***Task_CRUD_Model***
