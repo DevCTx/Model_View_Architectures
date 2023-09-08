@@ -8,9 +8,9 @@ Model-View architectures:
 * **Model-View-Presenter (MVP)**
 * **and Model-View-View-Model (MVVM)**
 
-Before to navigate between them, it may be useful to remind the advantages of a Model, and those of a View.
+Before to navigate between them, it may be useful to remind the advantages of a **Model**, and those of a **View**.
 
-That's why the firsts folders will explore simple Task Manager applications in different contexts and And the next ones 
+That's why the firsts folders will explore simple Task Manager applications in different contexts and the next ones 
 their uses in some Model-View patterns :
 
 1. [Without Model or View](1_No_Model/No_Model.md) (as 2 separate programs)
@@ -23,4 +23,4 @@ their uses in some Model-View patterns :
 6. [With Model-View-View-Model (MVVM)]
  
 
-[Model-View Architectures](../Model-View Architectures.md)
+[Model-View Architectures](README.md)

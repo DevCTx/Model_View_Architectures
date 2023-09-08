@@ -1,4 +1,4 @@
-[Model-View Architectures.md](../README.md) > [Model.md](Model.md)
+[Model-View Architectures](../README.md) > [Model](Model.md)
 
 # 2. With a Model :
 
@@ -9,9 +9,9 @@ It's the **second step** of our progress along [Model-View Architectures](../REA
 This section explains :
 
 * [What is a Model and why generate one ?](#what-is-a-model-and-why-generate-one-)
-* The [Generic models](#generic-models-) generated for this application.
-* The [Task CRUD Model](#task-crud-model-) used in this application.
-* The [File Observer](#file-observer-) integrated to this application. 
+* The [Generic models](#generic-models) generated for this application.
+* The [Task CRUD Model](#task-crud-model) used in this application.
+* The [File Observer](#file-observer) integrated to this application. 
 * The [Modifications in Task Manager Applications](#modifications-in-task-manager-applications) to integrate them.  
  
 ---
@@ -30,7 +30,7 @@ if it is sometimes necessary to add components for integrating it.
 
 ---
 
-## Generic models:
+## Generic models
 
 In programming, data can be shared when **all parties know their structures and definitions**. But to simplify the 
 coordination of these parties and improve the maintainability of the code, it is strongly encouraged to **extract** 
@@ -51,11 +51,11 @@ and applications**.
 * ***Generic_XML_CRUD_Model*** : suitable for XML files
 * ***Generic_SQLITE3_CRUD_Model*** : suitable for SQLITE3 databases
 
-More about : [Generic_Models.md](Generic_Models/Generic_Models.md)
+More about : [Generic_Models](Generic_Models/Generic_Models.md)
 
 ---
 
-## Task CRUD Model :
+## Task CRUD Model
 
 The **Task CRUD Model** can therefore be created super easily by defining a **Task** object with the wished arguments.
 
@@ -93,7 +93,7 @@ Only the ***Generic_JSON_CRUD_Model*** requires an additional parameter on the *
 **generic JSON encoder and decoder**, it must inherit from the ***Json_Object_Meta metaclass*** but this does not 
 affect the other models and can be used by default if wished.
 
-More about : [Generic_Models.md](Generic_Models/Generic_Models.md)
+More about : [Generic_Models](Generic_Models/Generic_Models.md)
 
 ### Specific format
 
@@ -115,7 +115,7 @@ each modification to simplify the code in the application model, but it is not r
 
 ---
 
-## File Observer :
+## File Observer
 
 You probably noticed that another argument is passed to the ***\_\_init\_\_*** method, a **Callable** function named 
 ***notify_function***.
@@ -123,10 +123,10 @@ You probably noticed that another argument is passed to the ***\_\_init\_\_*** m
 This is a part of the **File Observer** pattern which allows for the applications and programs to be **notified** when 
 the **file** or **database** is modified by another program.
 
-More about : [Observer_patterns.md](Observer_patterns/Observer_patterns.md)
+More about : [Observer_patterns](Observer_patterns/Observer_patterns.md)
 
 
-### The File Observer Handler within the Generic CRUD Model :
+### The File Observer Handler within the Generic CRUD Model
 
 The programs using a derived class of ***Generic_CRUD_Model*** with a ***file_extension*** argument, are automatically 
 registered as **observer on the file they create or use** within the system and are **notified** each time this **file** 
@@ -225,6 +225,5 @@ according to this new list.
  
 Afterward, they call the ***refresh*** method again.
 
-
 ---
-[Model-View Architectures.md](../README.md) > [Model.md](Model.md)
+[Model-View Architectures](../README.md) > [Model](Model.md)
