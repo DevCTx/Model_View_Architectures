@@ -3,7 +3,7 @@
 """
 import sqlite3
 from typing import Callable
-from datetime import datetime
+from datetime import datetime   # used in _type_to_sqlite3
 
 if __name__ == "__main__":  # To test the sample at the end of the file
     from Generic_CRUD_Model import Generic_CRUD_Model
@@ -13,9 +13,9 @@ else:   # if used as module
 
 class Generic_SQLITE3_CRUD_Model(Generic_CRUD_Model):
     """
-    Create a Generic CRUD Model for SQLITE3 File
+    Create a Generic CRUD Model for SQLITE3 Database
 
-    Fieldnames of the SQLITE3 file are based on the arguments of the 'object_type' __init__ method
+    Fieldnames of the SQLITE3 table are based on the arguments of the 'object_type' __init__ method
 
     The arguments of the __init__ in the 'object_type' class must match the names of its attributes
     to work with Generic_CRUD_Model.
@@ -133,7 +133,6 @@ class Generic_SQLITE3_CRUD_Model(Generic_CRUD_Model):
 if __name__ == "__main__":
     from datetime import datetime
 
-
     class Task:
 
         def __init__(self, title: str,
@@ -191,9 +190,9 @@ if __name__ == "__main__":
     
     | title           | priority  | active | modified_on                | weight |
     |-----------------|-----------|--------|----------------------------|--------|
-    | A first task    | 3         | 1      | 2023-07-26 11:55:46.780436 | 1.0    |
-    | A modified task | 4         | 0      | 2023-07-26 11:55:46.835892 | 4.5    |
-    
+    | A first task    | 3         | 1      | 2023-07-25 21:00:14.018657 | 1.0    |
+    | A modified task | 4         | 0      | 2023-07-25 21:00:14.061288 | 4.5    |
+
     """
 
     # # Delete the first task

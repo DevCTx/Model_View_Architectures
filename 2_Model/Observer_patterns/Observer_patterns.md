@@ -33,38 +33,41 @@ To show how to implement this step, an ***ObjectObserver*** class has been defin
 method and an automatic call to the ***register_observer*** method of the ***observable*** object during its 
 initialization.
 
-    class ObjectObserver:
+```python
+class ObjectObserver:
 
-        def __init__(self, observable):
-            observable.register_observer(self)
-    
-        def notify(self, observable, *args, **kwargs):
-            print(self, "Got", args, kwargs, "From", observable)
+    def __init__(self, observable):
+        observable.register_observer(self)
+
+    def notify(self, observable, *args, **kwargs):
+        print(self, "Got", args, kwargs, "From", observable)
+```
 
 The ***Observable*** class has only 3 little methods :
 * ***register_observer*** : for registering an observer into the 'observers' list when the observation is needed.
 * ***remove_observer*** : for removing an observer from the 'observers' list when the observation is not more needed.
 * ***notify_observers*** : for calling the notify methods of each object registered in the 'observers' list.
 
-      
-    class Observable:
-  
-        def __init__(self):
-            self._observers = []
+```python
+class Observable:
 
-        def register_observer(self, observer):
-            if not hasattr(observer,"notify") :
-                raise NotImplementedError("The class needs a 'notify' method in order to register as an observer")
-            if observer not in self._observers:
-                self._observers.append(observer)
+    def __init__(self):
+        self._observers = []
 
-        def remove_observer(self, observer):
-            if observer in self._observers:
-                self._observers.remove(observer)
+    def register_observer(self, observer):
+        if not hasattr(observer,"notify") :
+            raise NotImplementedError("The class needs a 'notify' method in order to register as an observer")
+        if observer not in self._observers:
+            self._observers.append(observer)
 
-        def notify_observers(self, *args, **kwargs):
-            for obs in self._observers:
-                obs.notify(self, *args, **kwargs)
+    def remove_observer(self, observer):
+        if observer in self._observers:
+            self._observers.remove(observer)
+
+    def notify_observers(self, *args, **kwargs):
+        for obs in self._observers:
+            obs.notify(self, *args, **kwargs)
+```
 
 ***Note***: It might have been interesting to create an **abstract** class of ***ObjectObserver*** to make the user 
 derived from it. But since the models are already generic and maybe not so easy to understand, I decided not to overload 
@@ -87,36 +90,41 @@ The application needs to create a ***FileObserverHandler*** object with in param
 * and the reference of the **notify function** (***notify_on_modified***) to call when a 
 modification appears on this file.
 
+```python
+shared_file = os.path.abspath("shared_file.txt")
 
-    shared_file = os.path.abspath("shared_file.txt")
+def notify_on_modified(event):
+print(f"notify_on_modified : {event}")
 
-    def notify_on_modified(event):
-        print(f"notify_on_modified : {event}")
-
-    file_observer_handler = FileObserverHandler(shared_file, notify_on_modified)
+file_observer_handler = FileObserverHandler(shared_file, notify_on_modified)
+```
 
 then it needs to create an ***Observer*** object to register this **file_observer_handler** into the list of 
 '**observers to notify**'.
 
-    observer = Observer()
-    observer.schedule(file_observer_handler, path=os.path.dirname(shared_file), recursive=False)
-    observer.start()
+```python
+observer = Observer()
+observer.schedule(file_observer_handler, path=os.path.dirname(shared_file), recursive=False)
+observer.start()
+```
 
 ***FileObserverHandler*** inherits from ***FileSystemEventHandler*** and overrides the ***on_modified*** method, but it 
 may also override ***on_created***, ***on_deleted***, ***on_moved***, ***on_opened***, ***on_closed***, or 
 ***on_any_event*** to be notified for these other kind of events.
 
-    class FileObserverHandler(FileSystemEventHandler):
+```python
+class FileObserverHandler(FileSystemEventHandler):
 
-        def __init__(self, shared_file_abspath, notify_function):
-            self.shared_file_abspath = shared_file_abspath
-            self.notify_function = notify_function
-    
-        def on_modified(self, event):
-            if event.is_directory:
-                return
-            if event.src_path == self.shared_file_abspath:
-                self.notify_function(event)
+    def __init__(self, shared_file_abspath, notify_function):
+        self.shared_file_abspath = shared_file_abspath
+        self.notify_function = notify_function
+
+    def on_modified(self, event):
+        if event.is_directory:
+            return
+        if event.src_path == self.shared_file_abspath:
+            self.notify_function(event)
+```
 
 More about : [FileSystemEventHandler on https://pythonhosted.org/](https://pythonhosted.org/watchdog/api.html#watchdog.events.FileSystemEventHandler)
 

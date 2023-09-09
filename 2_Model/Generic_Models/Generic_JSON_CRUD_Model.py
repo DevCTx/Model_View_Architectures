@@ -3,7 +3,7 @@
 """
 import json
 from typing import Callable
-from datetime import datetime
+from datetime import datetime   # used in Encoder
 
 if __name__ == "__main__":  # To test the sample at the end of the file
     from Generic_CRUD_Model import Generic_CRUD_Model

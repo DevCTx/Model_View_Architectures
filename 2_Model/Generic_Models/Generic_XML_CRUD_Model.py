@@ -1,7 +1,7 @@
 """
     Create a Generic CRUD Model for XML File
 """
-import xml.etree.ElementTree as ET
+from xml.etree import ElementTree as ET
 from typing import Callable
 
 if __name__ == "__main__":  # To test the sample at the end of the file

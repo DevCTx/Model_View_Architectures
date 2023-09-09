@@ -27,9 +27,6 @@ class Task(metaclass=Json_Object_Meta):      # needed for Generic_JSON_CRUD_Mode
         return f"{self.read_format()}"
 
 
-
-
-
 class Task_CRUD_Model(Generic_SQLITE3_CRUD_Model):
     """
     Create a complete CRUD Model for storing 'Task' Object in :

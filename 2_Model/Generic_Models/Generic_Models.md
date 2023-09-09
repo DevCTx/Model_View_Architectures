@@ -28,28 +28,34 @@ manipulating data of any kind.
 To be used, a class representing the data must be defined with the **same internal attribute names** as the 
 **arguments of its initialization method**. 
 
-    class Task:
+```python
+class Task:
 
-        def __init__(self, title: str, priority: int, active: bool = True, 
-                    modified_on: datetime = datetime.now(), weight: float = 1.0):
-            self.title: str = title
-            self.priority: int = priority
-            self.active: bool = active
-            self.modified_on: datetime = modified_on
-            self.weight: float = weight
+    def __init__(self, title: str, priority: int, active: bool = True, 
+                modified_on: datetime = datetime.now(), weight: float = 1.0):
+        self.title: str = title
+        self.priority: int = priority
+        self.active: bool = active
+        self.modified_on: datetime = modified_on
+        self.weight: float = weight
+```
 
 Then the model can be defined by simply giving this **object type** to the ***Generic_CRUD_Model***.
 
-    tasks = Generic_CRUD_Model(Task)
+```python
+tasks = Generic_CRUD_Model(Task)
+```
 
 ### Create / Read / Update / Delete
 
 A task can be **created** in the list as easily as a direct object and **read** as a list. 
 
-    tasks.create("A first task", 3)
-    print(tasks.read())     # Output: [('A first task', 3, True, datetime.datetime(2023, 7, 25, 20, 48, 22, 702207), 1.0)]
-    tasks.update(0, "A modified task", 5)
-    tasks.delete(0)
+```python
+tasks.create("A first task", 3)
+print(tasks.read())     # Output: [('A first task', 3, True, datetime.datetime(2023, 7, 25, 20, 48, 22, 702207), 1.0)]
+tasks.update(0, "A modified task", 5)
+tasks.delete(0)
+```
 
 **Update** and **Delete** will in addition use the index of the appropriate object to manipulate it in the list.   
 
@@ -57,10 +63,11 @@ A task can be **created** in the list as easily as a direct object and **read** 
 
 The ***read*** method will return a list according to the ***read_format*** that can be overriden.
 
-    def read_format(self):
-        """ Optional: customizes the format for printing objects in the read list  """
-        return tuple(self.__dict__.values())
-
+```python
+def read_format(self):
+    """ Optional: customizes the format for printing objects in the read list  """
+    return tuple(self.__dict__.values())
+```
 
 ### Data in file or database
 
@@ -112,10 +119,13 @@ and **entirely rewritten** at each modification.
 Note : The ***newline=""*** argument given in the open functions is to be cross-platform compatible and should avoid the 
 conflict between the '\n' Linux/Unix end line character and the '\r\n' Windows end line character.
 
-### Example of *Task.csv* file:
-    title,priority,active,modified_on,weight \
-    A first task,3,True,2023-07-25 20:57:08.549630,1.0 \
-    A modified task,4,False,2023-07-25 20:57:08.597780,4.5
+### Example of `Task.csv` file:
+
+````csv
+title,priority,active,modified_on,weight
+A first task,3,True,2023-07-25 20:57:08.549630,1.0
+A modified task,4,False,2023-07-25 20:57:08.597780,4.5
+````
 
 ---
 
@@ -149,24 +159,26 @@ data type in the XML file is stored for informational purposes only and is not u
 * ***_init_file_objects***: Same as for CSV files, this method simply calls ***_set_file_objects*** because the file is 
 **reset** and **entirely rewritten** at each modification.
 
-### Example of *Task.xml* file :
-    <?xml version='1.0' encoding='utf-8'?>
-    <Tasks>
-      <Task>
-        <title type="str">A first task</title>
-        <priority type="int">3</priority>
-        <active type="bool">True</active>
-        <modified_on type="datetime">2023-07-25 21:00:14.018657</modified_on>
-        <weight type="float">1.0</weight>
-      </Task>
-      <Task>
-        <title type="str">A modified task</title>
-        <priority type="int">4</priority>
-        <active type="bool">False</active>
-        <modified_on type="datetime">2023-07-25 21:00:14.061288</modified_on>
-        <weight type="float">4.5</weight>
-      </Task>
-    </Tasks>
+### Example of `Task.xml`  file :
+````xml
+<?xml version='1.0' encoding='utf-8'?>
+<Tasks>
+  <Task>
+    <title type="str">A first task</title>
+    <priority type="int">3</priority>
+    <active type="bool">True</active>
+    <modified_on type="datetime">2023-07-25 21:00:14.018657</modified_on>
+    <weight type="float">1.0</weight>
+  </Task>
+  <Task>
+    <title type="str">A modified task</title>
+    <priority type="int">4</priority>
+    <active type="bool">False</active>
+    <modified_on type="datetime">2023-07-25 21:00:14.061288</modified_on>
+    <weight type="float">4.5</weight>
+  </Task>
+</Tasks>
+````
 
 ---
 
@@ -178,8 +190,9 @@ It defines a **metaclass** called ***Json_Object_Meta***, which is responsible f
 methods to the classes that use it and so allows to convert the **object_type of any kind** into a **JSON format** and 
 vice versa.
 
-    class Task(metaclass=Json_Object_Meta)
-
+```python
+class Task(metaclass=Json_Object_Meta)
+```
 
 The ***Generic_Json_CRUD_Model*** is an extension of the ***Generic_CRUD_Model*** and so overrides the **three same 
 methods** :
@@ -198,23 +211,25 @@ and reconverted based on the type of the ***object_type*** structure.
 * ***_init_file_objects***: Likewise, this method simply calls ***_set_file_objects*** because the 
 file is **reset** and **entirely rewritten** at each modification.
 
-### Example of *Task.json* file :
-    [
-      {
-        "title": "A first task",
-        "priority": 3,
-        "active": true,
-        "modified_on": "2023-07-25 20:48:22.702207",
-        "weight": 1.0
-      },
-      {
-        "title": "A modified task",
-        "priority": 4,
-        "active": false,
-        "modified_on": "2023-07-25 20:48:22.755209",
-        "weight": 4.5
-      }
-    ]
+### Example of `Task.json` file :
+````json
+[
+  {
+    "title": "A first task",
+    "priority": 3,
+    "active": true,
+    "modified_on": "2023-07-25 20:48:22.702207",
+    "weight": 1.0
+  },
+  {
+    "title": "A modified task",
+    "priority": 4,
+    "active": false,
+    "modified_on": "2023-07-25 20:48:22.755209",
+    "weight": 4.5
+  }
+]
+````
 
 ---
 
@@ -250,12 +265,11 @@ more appropriate types using the ***_convert_to_object_list*** method.
 * and ***_type_to_sqlite3***: does the exact opposite, converting attribute types from ***object_type*** to formats 
 more appropriate for the **SQLITE3** database. 
 
-### Example of a *Task* table in a *Task.sqlite3* database:
-*   
-    | title           | priority  | active | modified_on                | weight |
-    |-----------------|-----------|--------|----------------------------|--------|
-    | A first task    | 3         | 1      | 2023-07-26 11:55:46.780436 | 1.0    |
-    | A modified task | 4         | 0      | 2023-07-26 11:55:46.835892 | 4.5    |
+### Example of a `Task` table in a `Task.sqlite3` database:
+| title           | priority  | active | modified_on                | weight |
+| --------------- | --------- | ------ | -------------------------- | ------ |
+| A first task    | 3         | 1      | 2023-07-26 11:55:46.780436 | 1.0    |
+| A modified task | 4         | 0      | 2023-07-26 11:55:46.835892 | 4.5    |
     
 ### SQLITE3 File Observer 
 
@@ -272,8 +286,10 @@ depending on the specific model being used**.
 
 The printing format will follow the output of the [read format](#read-format) :
 
-    [('A first task', 3, True, datetime.datetime(2023, 7, 25, 20, 57, 8, 549630), 1.0),
-    ('A second task', 6, True, datetime.datetime(2023, 7, 25, 20, 57, 8, 587785), 6.5)]
+```commandline
+[('A first task', 3, True, datetime.datetime(2023, 7, 25, 20, 57, 8, 549630), 1.0),
+('A second task', 6, True, datetime.datetime(2023, 7, 25, 20, 57, 8, 587785), 6.5)]
+```
 
 ---
 

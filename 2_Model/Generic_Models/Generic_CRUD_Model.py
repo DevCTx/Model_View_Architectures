@@ -47,9 +47,11 @@ class Generic_CRUD_Model:
         # the 'notify' function will be used to notify the registered observers when needed (create/update/delete)
         super().__init__()
 
-        # If the use of a file is requested
         self.filename = None
         self.file_observer = None
+        self.file_observer_handler = None
+
+        # If the use of a file is requested
         if file_extension is not None:
             # check is file_extension is a string
             if not isinstance(file_extension, str):
@@ -72,6 +74,9 @@ class Generic_CRUD_Model:
         if self.file_observer is not None:
             self.file_observer.stop()    # Remove the observer from FileSystemEventHandler
             self.file_observer.join()    # Wait for the end of the thread
+        if self.file_observer_handler:
+            self.file_observer_handler.stop()  # Stop the observer handler
+
 
     def _init_file_objects(self) -> None:
         """ Can be overriden to init the file/db to store the 'object_type' objects """
