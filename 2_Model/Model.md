@@ -21,12 +21,12 @@ This section explains :
 In software architecture, the **“Model”** represents the data and the business logic of the application. \
 It encapsulates the rules and operations related to the main functionalities of the application.
 
-Separating the model from the rest of the application allows for a clear distinction between data manipulation
-and user interface issues.
+Separating the model from the rest of the application allows for a clear **distinction between data manipulation
+and user interface issues**.
 
-It develops a more efficient teamwork by allowing parts to be edited independently of the others. This makes it easier 
-to test, debug, evolve, and reuse the code, improving maintainability and readability, and makes the code clearer, even 
-if it is sometimes necessary to add components for integrating it.
+It develops a more **efficient teamwork** by allowing parts to be edited independently of the others. This makes it 
+easier to **test**, **debug**, **evolve**, and **reuse the code**, improving maintainability and readability, and makes 
+the **code clearer**, even if it is sometimes necessary to add components for integrating it.
 
 ---
 
@@ -75,11 +75,8 @@ class Task:
         self.modified_on: datetime = modified_on
 ```
 
-
-The **Task CRUD Model** must derive from **Generic_CRUD_Model** or from one of **its children** to work, the 
-***\_\_init\_\_*** method must call the ***\_\_init\_\_*** of the model used with the **Task** object ... 
-
-... and that's it ! **The model is created and modifiable !** Pretty cool, no ?!
+The **Task CRUD Model** must derive from **Generic_CRUD_Model** or from one of **its children** to work, 
+and the ***\_\_init\_\_*** method must call the ***\_\_init\_\_*** of the model used with the **Task** object ... 
 
 ```python
 class Task_CRUD_Model(Generic_CRUD_Model):
@@ -87,6 +84,7 @@ class Task_CRUD_Model(Generic_CRUD_Model):
     def __init__(self, notify_function : Callable =None):
         super().__init__(Task, notify_function)
 ```
+... and that's it ! **The model is created and modifiable !** Pretty cool, no ?!
 
 ### Modifiable model
 
@@ -101,24 +99,28 @@ More about : [Generic_Models](../2_Model/Generic_Models/Generic_Models.md)
 
 ### Specific format
 
-For this application, I also override the ***read_format*** method of the ***Task*** class to customize the format of 
+For this application, I also override the ***read_format*** method in the ***Task*** class to customize the format of 
 objects appearing in the list :  
 
 ```python
-def read_format(self):
-    return tuple(self.__dict__.values())
+class Task:
+
+    def read_format(self):
+        return tuple(self.__dict__.values())
 ```
 
 and decided that the argument ***modified_on*** in ***Task_CRUD_Model*** will be automatically updated at 
 each modification to simplify the code in the application model, but it is not required to work correctly.
 
 ```python
-def create(self, title: str, priority: int):
-    super().create(title, priority, datetime.now())
+class Task_CRUD_Model(Generic_CRUD_Model):
 
-def update(self, list_idx: int, title: str, priority: int):
-    # Includes the date and time of modification
-    super().update(list_idx, title, priority, datetime.now())
+    def create(self, title: str, priority: int):
+        super().create(title, priority, datetime.now())
+    
+    def update(self, list_idx: int, title: str, priority: int):
+        # Includes the date and time of modification
+        super().update(list_idx, title, priority, datetime.now())
 ```
 
 ---
@@ -143,21 +145,26 @@ is modified.
 The ***_on_file_modified*** method will thus be called each time the program receives a notification **from the system**.
              
 ```python
-def __init__(self, object_type: type, on_modified: Callable = None, file_extension: str = None):
-    ...
-    # If the use of a file is requested
-    if file_extension is not None:
-        ...
-        self._on_file_modified = on_modified
-        ...
-        file_abspath = os.path.abspath(self.filename)
-        self.file_observer_handler = FileObserverHandler(file_abspath, self._on_file_modified_checking_timestamp)
-        
-        self.file_observer = Observer()
-        self.file_observer.schedule(self.file_observer_handler, path=os.path.dirname(file_abspath), recursive=False)
-        self.file_observer.start()
+from watchdog.observers import Observer
+from Observer_patterns.FileObserverHandler import FileObserverHandler
 
-        self.last_modified_timestamp = None  # Will be used to check if the file has been modified from outside
+class Generic_CRUD_Model:
+
+    def __init__(self, object_type: type, on_modified: Callable = None, file_extension: str = None):
+        ...
+        # If the use of a file is requested
+        if file_extension is not None:
+            ...
+            self._on_file_modified = on_modified
+            ...
+            file_abspath = os.path.abspath(self.filename)
+            self.file_observer_handler = FileObserverHandler(file_abspath, self._on_file_modified_checking_timestamp)
+            
+            self.file_observer = Observer()
+            self.file_observer.schedule(self.file_observer_handler, path=os.path.dirname(file_abspath), recursive=False)
+            self.file_observer.start()
+    
+            self.last_modified_timestamp = None  # Will be used to check if the file has been modified from outside
 ```
 
 The ***last_modified_timestamp*** defines a **trigger** to know if the modification (notified by the system, therefore 
@@ -168,29 +175,33 @@ The ***FileObserverHandler*** does not directly call the ***_on_file_modified***
 avoid the 'notification <==> modification' redundancy.
 
 ```python
-def _on_file_modified_checking_timestamp(self, *args, **kwargs) -> None:
-    
-    if self.filename:
-        ...            
-        # Check if the timestamp of the last modification is the same that the one we already got
-        current_timestamp = os.path.getmtime(self.filename)
-        creation_timestamp = os.path.getctime(self.filename)
-    
-        if current_timestamp != self.last_modified_timestamp and current_timestamp != creation_timestamp:
-            if self._on_file_modified is not None :
-                self._on_file_modified(self, *args, **kwargs)
+class Generic_CRUD_Model:
+
+    def _on_file_modified_checking_timestamp(self, *args, **kwargs) -> None:
+        
+        if self.filename:
+            ...            
+            # Check if the timestamp of the last modification is the same that the one we already got
+            current_timestamp = os.path.getmtime(self.filename)
+            creation_timestamp = os.path.getctime(self.filename)
+        
+            if current_timestamp != self.last_modified_timestamp and current_timestamp != creation_timestamp:
+                if self._on_file_modified is not None :
+                    self._on_file_modified(self, *args, **kwargs)
 ```
 
 At the end of the program, the ***stop*** method of the ***file_observer*** is also called to remove this program from 
 the **file observer list** of the system.
 
 ```python
-def __del__(self) -> None:
-    if self.file_observer:
-        self.file_observer.stop()    # Remove the observer from FileSystemEventHandler
-        self.file_observer.join()    # Wait for the end of the thread
-   if self.file_observer_handler:
-        self.file_observer_handler.stop()  # Stop the observer handler
+class Generic_CRUD_Model:
+
+    def __del__(self) -> None:
+        if self.file_observer:
+            self.file_observer.stop()    # Remove the observer from FileSystemEventHandler
+            self.file_observer.join()    # Wait for the end of the thread
+       if self.file_observer_handler:
+            self.file_observer_handler.stop()  # Stop the observer handler
 ```
 
 ---
@@ -239,14 +250,16 @@ Then it calls a ***clear_selection_and_input_fields*** method to clear any poten
 the mouse, and refresh the default values in the frame at the bottom of the window.
 
 ```python
-def update_tasks_from_model(self):
-    self.tree.delete(*self.tree.get_children())
-    for task in self.tasks.read():
-        self.tree.insert("", tk.END, values=task, tags=task)
+class Task_Manager_1:
 
-def refresh(self, *args, **kwargs):
-    self.update_tasks_from_model()
-    self.clear_selection_and_input_fields()
+    def update_tasks_from_model(self):
+        self.tree.delete(*self.tree.get_children())
+        for task in self.tasks.read():
+            self.tree.insert("", tk.END, values=task, tags=task)
+    
+    def refresh(self, *args, **kwargs):
+        self.update_tasks_from_model()
+        self.clear_selection_and_input_fields()
 ```
 
 ![Task_Manager_2_select2_Win](../2_Model/images/Task_Manager_2_select2_Win.png)
@@ -258,13 +271,15 @@ Then it calls a ***clear_pop_up_and_input_fields*** method to refresh the frame 
 according to this new list.
 
 ```python
-def update_tasks_from_model(self):
-    self.tasks_list = [(task[0],task[1]) for task in self.tasks.read()]
+class Task_Manager_2:
 
-def refresh(self, *args, **kwargs):
-    """ Called when the file/db is modified by another process """
-    self.update_tasks_from_model()
-    self.clear_pop_up_and_input_fields()
+    def update_tasks_from_model(self):
+        self.tasks_list = [(task[0],task[1]) for task in self.tasks.read()]
+    
+    def refresh(self, *args, **kwargs):
+        """ Called when the file/db is modified by another process """
+        self.update_tasks_from_model()
+        self.clear_pop_up_and_input_fields()
 ```
 
 ### Add / Update / Delete Buttons

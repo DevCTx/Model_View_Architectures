@@ -91,21 +91,23 @@ The application needs to create a ***FileObserverHandler*** object with in param
 modification appears on this file.
 
 ```python
-shared_file = os.path.abspath("shared_file.txt")
+if __name__ == "__main__":
 
-def notify_on_modified(event):
-print(f"notify_on_modified : {event}")
-
-file_observer_handler = FileObserverHandler(shared_file, notify_on_modified)
+    shared_file = os.path.abspath("shared_file.txt")
+    
+    def notify_on_modified(event):
+    print(f"notify_on_modified : {event}")
+    
+    file_observer_handler = FileObserverHandler(shared_file, notify_on_modified)
 ```
 
 then it needs to create an ***Observer*** object to register this **file_observer_handler** into the list of 
 '**observers to notify**'.
 
 ```python
-observer = Observer()
-observer.schedule(file_observer_handler, path=os.path.dirname(shared_file), recursive=False)
-observer.start()
+    observer = Observer()
+    observer.schedule(file_observer_handler, path=os.path.dirname(shared_file), recursive=False)
+    observer.start()
 ```
 
 ***FileObserverHandler*** inherits from ***FileSystemEventHandler*** and overrides the ***on_modified*** method, but it 

@@ -64,9 +64,11 @@ tasks.delete(0)
 The ***read*** method will return a list according to the ***read_format*** that can be overriden.
 
 ```python
-def read_format(self):
-    """ Optional: customizes the format for printing objects in the read list  """
-    return tuple(self.__dict__.values())
+class Task:
+
+    def read_format(self):
+        """ Optional: customizes the format for printing objects in the read list  """
+        return tuple(self.__dict__.values())
 ```
 
 ### Data in file or database
