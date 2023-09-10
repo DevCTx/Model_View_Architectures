@@ -200,17 +200,33 @@ def __del__(self) -> None:
 ### Integration of the Task_CRUD_Model
 
 In ***Task Manager 1***, the data was directly manipulated through a ***TreeView*** object, whereas it is managed  
-through the task ***list*** in ***Task Manager 2***. Now the ***tasks*** object is defined as ***Task_CRUD_Model*** 
-and can be used to create, read, update and delete tasks from/to the internal list of this shared class. 
+through the task ***list*** in ***Task Manager 2***. 
+
+Now the ***tasks*** object is defined as ***Task_CRUD_Model*** and can be used to ***create***, ***read***, 
+***update*** and ***delete*** tasks from/to the internal list of this **shared** class. 
 
 ```python
 from Task_CRUD_Model import Task_CRUD_Model
 ...
-self.tasks = Task_CRUD_Model(self.refresh)      # Create a connection to the Model
+class Task_Manager_1:
+    
+    def __init__(self, fill_the_list: bool = True):
+        ...
+        self.tasks = Task_CRUD_Model(self.notify_on_file_modified)      # Create a connection to the Model
+        ...
+    ...
+    def notify_on_file_modified(self, *args, **kwargs):
+        """ Called when the file/db is modified by another process """
+        # Triggers the update from the main thread, requested when using SQLITE3 in particular
+        self.window.after(0, self.refresh)
 ```
 
-By default, it refers to a ***refresh*** method to call when a notification is received from the system, indicating a 
-modification in the configured file, as defined by the ***Task_CRUD_Model***.
+A ***notify_on_file_modified*** method is used as callback to handle the notifications is received from the system when
+a modification is operated in the model file defined by the ***Task_CRUD_Model***.
+
+This one calls the respective ***refresh*** method of the ***Task Manager*** and uses the ***after*** method, 
+provided by the ***tkinter*** library to schedule its execution from at some point later in the ***main*** thread. 
+This is particularly required for the model using ***SQLITE3***.
 
 ### Refresh Method
 
@@ -219,28 +235,37 @@ modification in the configured file, as defined by the ***Task_CRUD_Model***.
 In ***Task_Manager_1***, the ***refresh*** method calls an ***update_tasks_from_model*** method, which clear all 
 the current lines of the tree before reinserting them using the ***read*** method of the model.
 
+Then it calls a ***clear_selection_and_input_fields*** method to clear any potential selections made on the list with 
+the mouse, and refresh the default values in the frame at the bottom of the window.
+
 ```python
 def update_tasks_from_model(self):
     self.tree.delete(*self.tree.get_children())
     for task in self.tasks.read():
         self.tree.insert("", tk.END, values=task, tags=task)
-```
 
-It also calls a ***clear_selection_and_input_fields*** method to clear any potential selections made on the list with 
-the mouse, and refresh the default values in the frame at the bottom of the window.
+def refresh(self, *args, **kwargs):
+    self.update_tasks_from_model()
+    self.clear_selection_and_input_fields()
+```
 
 ![Task_Manager_2_select2_Win](../2_Model/images/Task_Manager_2_select2_Win.png)
 
 In ***Task_Manager_2***, the same-named ***update_tasks_from_model*** method is called to update the list by copying 
 the 2 first elements only.
 
+Then it calls a ***clear_pop_up_and_input_fields*** method to refresh the frame list and reset the scrollbar region 
+according to this new list.
+
 ```python
 def update_tasks_from_model(self):
     self.tasks_list = [(task[0],task[1]) for task in self.tasks.read()]
-```
 
-It also calls a ***clear_pop_up_and_input_fields*** method to refresh the frame list and reset the scrollbar region 
-according to this new list.
+def refresh(self, *args, **kwargs):
+    """ Called when the file/db is modified by another process """
+    self.update_tasks_from_model()
+    self.clear_pop_up_and_input_fields()
+```
 
 ### Add / Update / Delete Buttons
 
@@ -248,7 +273,7 @@ according to this new list.
 * The '***Update***' or '✍' buttons calls the ***update*** method 
 * and the '***Delete***' or '🗑' buttons calls the ***delete*** method
  
-Afterward, they call the ***refresh*** method again.
+Then they also call the ***refresh*** method but this time directly because it is done from the main thread.
 
 ---
 [Model-View Architectures](../README.md) > [2_Model](../2_Model/Model.md)

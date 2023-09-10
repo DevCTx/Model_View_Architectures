@@ -15,7 +15,7 @@ class Task_Manager_2:
     def __init__(self, fill_the_list: bool = True):
 
         ### Modified to use the model
-        self.tasks = Task_CRUD_Model(self.refresh)      # Create a connection to the Model
+        self.tasks = Task_CRUD_Model(self.notify_on_file_modified)      # Create a connection to the Model
 
         # Fill the list for demonstration purpose
         if fill_the_list:
@@ -48,11 +48,16 @@ class Task_Manager_2:
         self.tasks_list = [(task[0],task[1]) for task in self.tasks.read()]
     ###
 
-    ### Added to get the notifications when the file/db is modified
     def refresh(self, *args, **kwargs):
         """ Called when the file/db is modified by another process """
         self.update_tasks_from_model()
         self.clear_pop_up_and_input_fields()
+
+    ### Added to get the notifications when the file/db is modified
+    def notify_on_file_modified(self, *args, **kwargs):
+        """ Called when the file/db is modified by another process """
+        # Triggers the update from the main thread, requested when using SQLITE3 in particular
+        self.window.after(0, self.refresh)
     ###
 
     def _refresh_tasks_option_frame_list(self):
