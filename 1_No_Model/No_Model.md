@@ -58,8 +58,11 @@ For demonstration purposes, the table and the list of these two programs are aut
 launched. \
 The data is not saved and remains in memory only until the program is closed.
 
-These programs do not share data and duplicate some logic, which is not recommended.\
-They only allow to show the 2 programs which will be used to present the integrations of models and views.
+This section only shows the two programs that will be used to demonstrate the integration of models and views. 
+It's important to note that these programs do not share data and duplicate a part of the data logic, which is not 
+recommended. 
+
+Therefore, our next step will involve exploring how to incorporate a [Model](../2_Model/Model.md) into these two programs.
 
 ---
 

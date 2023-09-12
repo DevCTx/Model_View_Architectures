@@ -1,4 +1,4 @@
-[Model-View Architectures](../../README.md) > [Model](../../2_Model/Model.md) > [Generic_Models](../../2_Model/Generic_Models/Generic_Models.md) 
+[Model-View Architectures](../../README.md) > [3_Model_View](../../3_Model_View/Model_View.md) > [Generic_Models](../../3_Model_View/Generic_Models/Generic_Models.md) 
 
 # Generic Models : 
 
@@ -405,4 +405,4 @@ respective ***notify*** methods which are **here defined as *lambda*** functions
 
 ---
 
-[Model-View Architectures](../../README.md) > [Model](../../2_Model/Model.md) > [Generic_Models](../../2_Model/Generic_Models/Generic_Models.md)
+[Model-View Architectures](../../README.md) > [3_Model_View](../../3_Model_View/Model_View.md) > [Generic_Models](../../3_Model_View/Generic_Models/Generic_Models.md)

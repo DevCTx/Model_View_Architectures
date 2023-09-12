@@ -291,4 +291,8 @@ class Task_Manager_2:
 Then they also call the ***refresh*** method but this time directly because it is done from the main thread.
 
 ---
+
+Now we have a model, let's see how to incorporate a [View](../3_Model_View/Model_View.md) mechanism to our programs.
+
+---
 [Model-View Architectures](../README.md) > [2_Model](../2_Model/Model.md)
