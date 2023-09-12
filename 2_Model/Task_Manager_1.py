@@ -1,3 +1,5 @@
+# Task_Manager_1.py
+from datetime import datetime
 import tkinter as tk
 from tkinter import ttk
 
@@ -83,10 +85,11 @@ class Task_Manager_1:
     ### Added to get the notifications when the file/db is modified
     def notify_on_file_modified(self, *args, **kwargs):
         """ Called when the file/db is modified by another process """
-        # Triggers the update from the main thread, requested when using SQLITE3 in particular
+        # The 'after' method from Tkinter library is employed to initiate the refresh within the main thread.
+        # This setup is particularly requested when the system called this method to notify the application
+        # about an external modification, especially when dealing with SQLITE3 files.
         self.window.after(0, self.refresh)
     ###
-
 
     def on_treeview_select(self, event):
         # Get the selected item line
@@ -122,11 +125,13 @@ class Task_Manager_1:
                 values_item = self.tree.item(self.selected_item, "tags")
 
                 for idx, task_tuple in enumerate(self.tasks.read()):
-                    if task_tuple[0] == values_item[0] and task_tuple[1] == int(values_item[1]):
+                    if task_tuple[0] == values_item[0] \
+                            and task_tuple[1] == int(values_item[1]) \
+                            and task_tuple[2] == datetime.strptime(values_item[2], '%Y-%m-%d %H:%M:%S.%f') :
                         self.tasks.update(idx, self.entry_var.get(), int(self.priority_var.get()))
                         break
 
-            self.refresh()
+        self.refresh()
             ###
 
     def handle_delete_task(self):
@@ -134,7 +139,9 @@ class Task_Manager_1:
         values_item = self.tree.item(self.selected_item, "tags")
 
         for idx, task_tuple in enumerate(self.tasks.read()):
-            if task_tuple[0] == values_item[0] and task_tuple[1] == int(values_item[1]):
+            if task_tuple[0] == values_item[0] \
+                    and task_tuple[1] == int(values_item[1]) \
+                    and task_tuple[2] == datetime.strptime(values_item[2], '%Y-%m-%d %H:%M:%S.%f'):
                 self.tasks.delete(idx)
                 break
 

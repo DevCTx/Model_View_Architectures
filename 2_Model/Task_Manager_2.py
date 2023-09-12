@@ -45,7 +45,8 @@ class Task_Manager_2:
     ### Modified to use the model
     def update_tasks_from_model(self):
         # Just refresh the list by reading the data
-        self.tasks_list = [(task[0],task[1]) for task in self.tasks.read()]
+        # self.tasks_list = [(task[0],task[1],task[2]) for task in self.tasks.read()]
+        self.tasks_list = self.tasks.read()
     ###
 
     def refresh(self, *args, **kwargs):
@@ -56,7 +57,9 @@ class Task_Manager_2:
     ### Added to get the notifications when the file/db is modified
     def notify_on_file_modified(self, *args, **kwargs):
         """ Called when the file/db is modified by another process """
-        # Triggers the update from the main thread, requested when using SQLITE3 in particular
+        # The 'after' method from Tkinter library is employed to initiate the refresh within the main thread.
+        # This setup is particularly requested when the system called this method to notify the application
+        # about an external modification, especially when dealing with SQLITE3 files.
         self.window.after(0, self.refresh)
     ###
 
@@ -146,8 +149,7 @@ class Task_Manager_2:
     def handle_add_task(self):
         if len(self.entry_var.get()) > 0:
             ### Modified to use the model
-            if len(self.entry_var.get()) > 0:
-                self.tasks.create(self.entry_var.get(), int(self.priority_var.get()))
+            self.tasks.create(self.entry_var.get(), int(self.priority_var.get()))
 
             self.refresh()
             ###
@@ -161,7 +163,7 @@ class Task_Manager_2:
                 selected_task_tuple = self.tasks_list[task_id]
 
                 for idx, task_tuple in enumerate(self.tasks.read()):
-                    if task_tuple[0] == selected_task_tuple[0] and task_tuple[1] == int(selected_task_tuple[1]):
+                    if task_tuple == selected_task_tuple :
                         self.tasks.update(idx, self.entry_var.get(), int(self.priority_var.get()))
                         break
 
@@ -175,7 +177,7 @@ class Task_Manager_2:
             selected_task_tuple = self.tasks_list[task_id]
 
             for idx, task_tuple in enumerate(self.tasks.read()):
-                if task_tuple[0] == selected_task_tuple[0] and task_tuple[1] == int(selected_task_tuple[1]):
+                if task_tuple == selected_task_tuple :
                     self.tasks.delete(idx)
                     break
 

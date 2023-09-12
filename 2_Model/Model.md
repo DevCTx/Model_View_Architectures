@@ -228,8 +228,10 @@ class Task_Manager_1:
     ...
     def notify_on_file_modified(self, *args, **kwargs):
         """ Called when the file/db is modified by another process """
-        # Triggers the update from the main thread, requested when using SQLITE3 in particular
-        self.window.after(0, self.refresh)
+            # The 'after' method from Tkinter library is employed to initiate the refresh within the main thread.
+            # This setup is particularly requested when the system called this method to notify the application
+            # about an external modification, especially when dealing with SQLITE3 files.
+            self.window.after(0, self.refresh)
 ```
 
 A ***notify_on_file_modified*** method is used as callback to handle the notifications is received from the system when
@@ -264,17 +266,15 @@ class Task_Manager_1:
 
 ![Task_Manager_2_select2_Win](../2_Model/images/Task_Manager_2_select2_Win.png)
 
-In ***Task_Manager_2***, the same-named ***update_tasks_from_model*** method is called to update the list by copying 
-the 2 first elements only.
-
-Then it calls a ***clear_pop_up_and_input_fields*** method to refresh the frame list and reset the scrollbar region 
-according to this new list.
+In ***Task_Manager_2***, the same-named ***update_tasks_from_model*** method is called to update the list by simply 
+copying the elements of the ***read*** method, then a ***clear_pop_up_and_input_fields*** method is called to refresh 
+the frame list and reset the scrollbar region according to this new list.
 
 ```python
 class Task_Manager_2:
 
     def update_tasks_from_model(self):
-        self.tasks_list = [(task[0],task[1]) for task in self.tasks.read()]
+        self.tasks_list = self.tasks.read()
     
     def refresh(self, *args, **kwargs):
         """ Called when the file/db is modified by another process """
