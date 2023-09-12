@@ -1,0 +1,16 @@
+[
+  {
+    "title": "A first task",
+    "priority": 3,
+    "active": true,
+    "modified_on": "2023-09-09 11:01:31.884242",
+    "weight": 1.0
+  },
+  {
+    "title": "A modified task",
+    "priority": 4,
+    "active": false,
+    "modified_on": "2023-09-09 11:01:31.953244",
+    "weight": 4.5
+  }
+]
