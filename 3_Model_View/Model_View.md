@@ -126,6 +126,8 @@ Initially, this function was named '***notify_on_file_modified***'. But because 
 itself as an **observer**, and must define a ***notify*** method, it has been judicious to merge the two functions 
 into one the named '***notify***' method.
 
+---
+
 A switching mechanism is also introduced to prevent multiple consecutive refresh requests, which can occur during 
 successive creations.
 
@@ -167,6 +169,7 @@ class Task_Manager_2:
             self.window.after(0, self.refresh)
             self.notify_refresh = True
 ```
+---
 
 Finally, since the ***notify*** method is invoked from the ***Generic_CRUD_Model*** whenever a data modification occurs, 
 there is no longer a need to explicitly request ***refresh*** calls within the methods responsible for creating, 
