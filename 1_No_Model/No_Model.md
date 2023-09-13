@@ -1,4 +1,4 @@
-[Model-View Architectures](../README.md) > [No_Model](No_Model.md)
+[Model-View Architectures](../README.md) > [No_Model](../1_No_Model/No_Model.md)
 
 # 1. Without Model or View: 
 
@@ -66,4 +66,4 @@ Therefore, our next step will involve exploring how to incorporate a [Model](../
 
 ---
 
-[Model-View Architectures](../README.md) > [No_Model](No_Model.md)    
+[Model-View Architectures](../README.md) > [No_Model](../1_No_Model/No_Model.md)

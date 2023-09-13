@@ -51,11 +51,39 @@ Then the model can be defined by simply giving this **object type** to the ***Ge
 tasks = Generic_CRUD_Model(Task)
 ```
 
+The ***Generic_CRUD_Model*** will then create a **list** of data based on the ***object_type***, if the given argument is a class, and store the ***field names and types*** of this ***object_type*** for the future data operations.
+
+````python
+class Generic_CRUD_Model:
+
+    def __init__(self, object_type: type, on_modified: Callable = None, file_extension: str = None):
+
+        # check if object_type is a class
+        if not inspect.isclass(object_type):
+            raise TypeError(f"'{object_type}' is not a class.")
+        self.object_type = object_type
+
+        # and if 'object_type' has an __init__ method
+        if inspect.isclass(object_type) and "__init__" in dir(object_type):
+
+            # get the field_names and field_types of the 'object_type' from the __init__ arguments
+            constructor_annotations = get_type_hints(object_type.__init__)
+            self.field_names = list(constructor_annotations.keys())
+            self.field_types = list(constructor_annotations.values())
+
+        else:
+            raise TypeError(f"'{object_type}' must have a __init__ function to work with {self.__class__.__name__}")
+
+        # and create a list of object_type in memory
+        self.object_list: list[object_type] = []
+
+````
+
 ---
 
 ### Create / Read / Update / Delete
 
-A task can be **created** in the list as easily as a direct object and **read** as a list. 
+Now, a task data can be **created** and **read** in the list as easily as a task object can be set and get.
 
 ```python
 tasks.create("A first task", 3)
@@ -64,7 +92,7 @@ tasks.update(0, "A modified task", 5)
 tasks.delete(0)
 ```
 
-**Update** and **Delete** will in addition use the index of the appropriate object to manipulate it in the list.   
+And it can be **updated** or **deleted** by using the appropriate index of the object to manipulate.   
 
 ---
 
@@ -84,10 +112,10 @@ class Task:
 
 ### Data in file or database
 
-When a **file extension** is provided as an argument, the model generates a ***filename*** based on 
-the name of the ***object_type*** and the given ***file_extension***.
+When a ***file_extension*** is provided as an argument during the initialization of the ***Generic_CRUD_Model***, it 
+generates a ***filename*** based on the name of the ***object_type*** and the given ***file_extension***.
 
-There are currently **four derived versions** of this ***Generic_CRUD_Model*** that allow data to be saved in 
+There are currently **four derived versions** of this ***Generic_CRUD_Model*** that allow data to be saved in : 
 * **CSV** files, 
 * **JSON** files, 
 * **XML** files 
@@ -97,7 +125,7 @@ Those models overwrite the ***_init_file_objects***, ***_set_files_objects*** an
 let the ***Generic_CRUD_Model*** know how to **initiate**, **set** and **get** the data from/to this file, each time 
 the ***create, read, update*** and ***delete*** methods are used.
 
-If a ***filename*** exists, the model also registers itself automatically as an ***observer*** on this file within the 
+If a ***filename*** exists, the model is also automatically registered as an ***observer*** on this file within the 
 system, via the **Python's watchdog mechanism**, to be **notified** if **another program modifies it**.
 
 More about : [Observer_patterns](../Observer_patterns/Observer_patterns.md)
@@ -110,11 +138,11 @@ The ***Generic_CSV_CRUD_Model*** is designed to work with **CSV** files and uses
 It is initialized with an ***object_type*** and an optional ***notify_function*** which can be notified when the CSV 
 file is modified.
 
-**Python does not allow the direct modification of a specific line in a CSV file**. Therefore, it is necessary to read 
-the entire file, store the information in memory, modify the relevant line, and then rewrite the entire file for a 
-modification to take effect.
+**Python does not allow the direct modification of a specific line in a CSV file**. Therefore, it is necessary to 
+**read** the entire file, **store** the information in memory, **modify** the relevant line, and then **rewrite** the 
+entire file for a modification to take effect.
 
-This class defines **three methods**:
+***Generic_CSV_CRUD_Model*** overwrites **three methods**:
 
 * ***_set_file_objects***: opens the CSV file in **write** mode, insert a **header** based on the 
 **initialization arguments of the generic object** (***object_type***), then write the data rows from the **list** 
@@ -159,13 +187,18 @@ This class defines **three methods**:
 * ***_set_file_objects***: This method generates **XML elements** according to the names of the ***object_type*** 
 attributes. It creates a '**Tasks**' root Element and for each object of the list, a '**Task**' 
 SubElement with its **attributes as tags**, store the **value of them as text** and their **types as xml attributes**. 
+\
+\
 Then, the file is **formatted with indentations** for a better human readability, and store as an **utf-8 encoding** 
 standard **XML file**.
 
 
 * ***_get_file_objects***: This method is responsible for **parsing the XML file**, retrieving the root, and storing 
 each of its elements in the ***object_type*** list. Before adding them to the list, it ensures that the elements are 
-correctly **converted** to their respective data types using ***_convert_to_object_list*** method. Please note that the 
+correctly **converted** to their respective data types using ***_convert_to_object_list*** method. 
+\
+\
+Please note that the 
 data type in the XML file is stored for informational purposes only and is not used in this conversion process.
 
 
@@ -216,7 +249,10 @@ methods** :
 
 * ***_get_file_objects***: This method opens the JSON file in **read** mode and utilizes the ***Decoder*** method from 
 the **metaclass** to **convert** the **JSON-formatted** lines into **JSON objects** and convert them to the appropriate 
-***object_type*** using the same ***_convert_to_object_list*** method. Using this method, it is possible to retrieve a format that JSON 
+***object_type*** using the same ***_convert_to_object_list*** method. 
+\
+\
+Using this method, it is possible to retrieve a format that JSON 
 cannot convert in its original way, such as **datetime** attributes, as they are stored as **text** in the JSON file 
 and reconverted based on the type of the ***object_type*** structure.
 
@@ -253,7 +289,7 @@ The ***Generic_SQLITE3_CRUD_Model*** is an extension of the ***Generic_CRUD_Mode
 library. But contrary to the CSV, XML or JSON files, as database, it appears evident to deploy a different strategy 
 to ***create***, ***update*** and ***delete*** the data from/to it.
 
-That's why these 3 different methods has been **rewritten** in this model to better fit this database.
+That's why these different methods have been **rewritten** in this model to better fit this database.
 
 * ***_init_file_objects*** : this method initializes a **connection** to the **SQLITE3** database or creates it if it 
 does not exist. It creates a **database** named as the ***object_type*** given in argument to the ***\_\_init\_\_*** 
@@ -289,7 +325,7 @@ more appropriate for the **SQLITE3** database.
 
 ### SQLITE3 File Observer 
 
-Please note that the system will notify the changes on the .sqlite3 file but not on the specific 'object_type' table.\
+Please note that the system will notify the changes on the SQLITE3 file but not on the specific 'object_type' table.\
 For another use of this SQLITE3 database, a better notification mechanism might be needed to be more accurate.
 
 ---

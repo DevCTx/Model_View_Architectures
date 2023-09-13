@@ -359,9 +359,9 @@ receive the notifications** from the system whenever modifications are made to t
 > threads and ensure you’re running a thread-aware Tcl/Tk build."
 
 
-A thread is thus configured in the ***\_\_init*** method to start the ***file_observer***.
+A thread is thus configured in the ***\_\_init__*** method to start the ***file_observer***.
 
-Then, a mechanism is added to the ***\_\_del*** method to **wait for the thread to end** before closing the application.
+Then, a mechanism is added to the ***\_\_del__*** method to **wait for the thread to end** before closing the application.
 
 ```python
 import threading
@@ -387,7 +387,7 @@ class Generic_CRUD_Model(Observable):
 
 ---
 
-### Usage Example
+### Usage Example Updated
 
 ```python
 if __name__ == "__main__":
@@ -414,8 +414,12 @@ if __name__ == "__main__":
     ...
 ```
 
-The way the model is used remains unchanged, except that it now **notifies its *observers*** by invoking their 
+The way the model is used remains unchanged, except that now it **notifies its *observers*** by invoking their 
 respective ***notify*** methods which are **here defined as *lambda*** functions to simply print a message.
+
+---
+
+Back to [3_Model_View](../../3_Model_View/Model_View.md#modifications-in-generic-models)
 
 ---
 

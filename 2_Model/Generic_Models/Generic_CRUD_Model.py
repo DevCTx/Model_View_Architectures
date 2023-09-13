@@ -40,7 +40,7 @@ class Generic_CRUD_Model:
         else:
             raise TypeError(f"'{object_type}' must have a __init__ function to work with {self.__class__.__name__}")
 
-        # and a list of object_type in memory
+        # and create a list of object_type in memory
         self.object_list: list[object_type] = []
 
         # The object is defined as an Observable so it can be used by different views in the same program

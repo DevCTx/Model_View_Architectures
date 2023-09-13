@@ -2,10 +2,10 @@
 
 # 3. With a Model View
 
-In this scenario, we introduce views that allow the two programs to share data and logic under different user 
-interfaces in the same program.
+In the previous scenario we introduced the [Model](../2_Model/Model.md). Now, we are going to introduce views that allow the two programs 
+to share data and logic under different user interfaces in the same program.
 
-It's the **third step** of our progression into [Model-View Architectures](../README.md).
+It's the **third step** of our progression into the [Model-View Architectures](../README.md).
 
 This section explains :
 
@@ -41,7 +41,7 @@ Then, an additional **Observer pattern** has been implemented to make the **Gene
 thus allows the different views or windows to be notified when one of them make a data modification, meaning
 **inside the application scope**. 
 
-More about : [Generic_Models](../3_Model_View/Generic_Models/Generic_Models.md#update-to-share-models-between-views)
+More about : [Generic_Models](../3_Model_View/Generic_Models/Generic_Models.md#observable-class-inheritance)
 
 ---
 
@@ -51,7 +51,7 @@ Simple, no one !
 
 Only the **Usage Example** has been modified to show how to make a model observed by different users.
 
-More about : [Generic_Models](../3_Model_View/Generic_Models/Generic_Models.md#update-to-share-models-between-views)
+More about : [Generic_Models](../3_Model_View/Generic_Models/Generic_Models.md#usage-example-updated)
 
 ---
 
@@ -101,6 +101,7 @@ class Task_Manager_1:
         self.tasks_manager_1_frame = tk.LabelFrame(self.window, text="Task Manager 1", labelanchor='nw')
         self.tasks_manager_1_frame.pack(side="left", fill=tk.BOTH, expand=True)
 ```
+---
 
 The ***Task_CRUD_Model*** has also been deplaced to the ***main*** part to be shared if needed.
 It still uses a ***notify*** function, named ***file_modified***, as a parameter in its initialization which takes
@@ -122,11 +123,11 @@ if __name__ == "__main__":
 ```
 
 Initially, this function was named '***notify_on_file_modified***'. But because the ***Task_CRUD_Model*** registers 
-itself as an **observer**, and it must define a ***notify*** method to handle modifications within the application, 
-it has been judicious to merge the two functions into one, which is now simply named '***notify***'.
+itself as an **observer**, and must define a ***notify*** method, it has been judicious to merge the two functions 
+into one the named '***notify***' method.
 
-A switching mechanism has also been introduced to prevent multiple consecutive refresh requests, which can occur during 
-various creations, especially when filling the list for demonstration purposes.
+A switching mechanism is also introduced to prevent multiple consecutive refresh requests, which can occur during 
+successive creations.
 
 In ***Task Manager 1*** :
 ```python

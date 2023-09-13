@@ -2,7 +2,7 @@
 
 # 2. With a Model
 
-In this scenario, we introduce a model that allows the two programs to share data and logic.
+In this scenario, we introduce a model that allows the [two programs](../1_No_Model/No_Model.md) to share data and logic.
 
 It's the **second step** of our progress along [Model-View Architectures](../README.md).
 
@@ -75,7 +75,7 @@ class Task:
         self.modified_on: datetime = modified_on
 ```
 
-The **Task CRUD Model** must derive from **Generic_CRUD_Model** or from one of **its children** to work, 
+The **Task CRUD Model** must derive from **Generic_CRUD_Model** or from one of **its children** to work,\
 and the ***\_\_init\_\_*** method must call the ***\_\_init\_\_*** of the model used with the **Task** object ... 
 
 ```python
@@ -94,7 +94,7 @@ The model can easily be modified by **swapping the class inherited** with any cl
 ***Generic_CRUD_Model***.
 
 Only the ***Generic_JSON_CRUD_Model*** requires an additional parameter on the ***Task*** class. To properly use the 
-**generic JSON encoder and decoder**, it must inherit from the ***Json_Object_Meta metaclass*** but this does not 
+**generic JSON encoder and decoder**. It must inherit from the ***Json_Object_Meta metaclass*** but this does not 
 affect the other models and can be used by default if wished.
 
 More about : [Generic_Models](../2_Model/Generic_Models/Generic_Models.md)
@@ -173,11 +173,9 @@ class Generic_CRUD_Model:
 ```
 
 The ***last_modified_timestamp*** defines a **trigger** to know if the modification (notified by the system, therefore 
-regardless of the application) comes from this program or from another one. 
-
-The ***FileObserverHandler*** does not directly call the ***_on_file_modified*** method but the 
-***_on_file_modified_checking_timestamp*** method instead to check which program made the last modification, and thus 
-avoid the 'notification <==> modification' redundancy.
+regardless of the application) comes from this program or from another one, because the ***FileObserverHandler*** does 
+not directly call the ***_on_file_modified*** method but the ***_on_file_modified_checking_timestamp*** method instead 
+to check which program made the last modification, and thus avoid the 'notification <==> modification' redundancy.
 
 ```python
 class Generic_CRUD_Model:
@@ -196,7 +194,7 @@ class Generic_CRUD_Model:
 ```
 
 At the end of the program, the ***stop*** method of the ***file_observer*** is also called to remove this program from 
-the **file observer list** of the system.
+the **file observer list**.
 
 ```python
 class Generic_CRUD_Model:
@@ -215,7 +213,7 @@ class Generic_CRUD_Model:
 
 ### Integration of the Task_CRUD_Model
 
-In ***Task Manager 1***, the data was directly manipulated through a ***TreeView*** object, whereas it is managed  
+In ***Task Manager 1***, the data was directly manipulated through a ***TreeView*** object, whereas it is managed 
 through the task ***list*** in ***Task Manager 2***. 
 
 Now the ***tasks*** object is defined as ***Task_CRUD_Model*** and can be used to ***create***, ***read***, 
@@ -297,7 +295,7 @@ class Task_Manager_2:
 * The '***Update***' or '✍' buttons calls the ***update*** method 
 * and the '***Delete***' or '🗑' buttons calls the ***delete*** method
  
-Then they also call the ***refresh*** method but this time directly because it is done from the main thread.
+Then they also call the ***refresh*** method but this time directly because here, it is done from the main thread.
 
 ---
 
