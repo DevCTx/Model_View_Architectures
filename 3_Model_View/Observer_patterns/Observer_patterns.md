@@ -1,4 +1,4 @@
-[Model-View Architectures](../../README.md) > [Model](../../2_Model/Model.md) > [Observer_patterns](../../2_Model/Observer_patterns/Observer_patterns.md) 
+[Model-View Architectures](../../README.md) > [3_Model_View](../../3_Model_View/Model_View.md) > [Observer_patterns](../../3_Model_View/Observer_patterns/Observer_patterns.md) 
 
 # Observer patterns : 
 
@@ -132,4 +132,4 @@ More about : [FileSystemEventHandler on https://pythonhosted.org/](https://pytho
 
 ---
 
-[Model-View Architectures](../../README.md) > [Model](../../2_Model/Model.md) > [Observer_patterns](../../2_Model/Observer_patterns/Observer_patterns.md)
+[Model-View Architectures](../../README.md) > [3_Model_View](../../3_Model_View/Model_View.md) > [Observer_patterns](../../3_Model_View/Observer_patterns/Observer_patterns.md)
