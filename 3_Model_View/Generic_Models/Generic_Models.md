@@ -23,6 +23,7 @@ objects from/to this list.
 It is the **core of the CRUD models** and allows by inheritance to add these functionalities to any class for 
 manipulating data of any kind.
 
+---
 
 ### Initialization
 
@@ -47,6 +48,8 @@ Then the model can be defined by simply giving this **object type** to the ***Ge
 tasks = Generic_CRUD_Model(Task)
 ```
 
+---
+
 ### Create / Read / Update / Delete
 
 A task can be **created** in the list as easily as a direct object and **read** as a list. 
@@ -60,6 +63,8 @@ tasks.delete(0)
 
 **Update** and **Delete** will in addition use the index of the appropriate object to manipulate it in the list.   
 
+---
+
 ### Read Format
 
 The ***read*** method will return a list according to the ***read_format*** that can be overriden.
@@ -72,6 +77,7 @@ class Task:
         return tuple(self.__dict__.values())
 ```
 
+---
 
 ### Data in file or database
 
@@ -273,8 +279,10 @@ more appropriate for the **SQLITE3** database.
 | --------------- | --------- | ------ | -------------------------- | ------ |
 | A first task    | 3         | 1      | 2023-07-26 11:55:46.780436 | 1.0    |
 | A modified task | 4         | 0      | 2023-07-26 11:55:46.835892 | 4.5    |
-    
-    
+     
+
+---
+
 ### SQLITE3 File Observer 
 
 Please note that the system will notify the changes on the .sqlite3 file but not on the specific 'object_type' table.\
@@ -300,6 +308,8 @@ The printing format will follow the output of the [read format](#read-format) :
 
 Some modifications are required to ensure that the model is properly shared among different views and receives 
 notifications each time one of them performs a creation, updating, or deleting operation.
+
+---
 
 ### Observable class inheritance
 
@@ -330,6 +340,8 @@ class Generic_CRUD_Model(Observable):
 ```
 
 More about : [Observer_patterns](../../2_Model/Observer_patterns/Observer_patterns.md)
+
+---
 
 ### File Observer
 
@@ -372,6 +384,8 @@ class Generic_CRUD_Model(Observable):
         if hasattr(self, "observer_thread") and isinstance(self.observer_thread, threading.Thread):
             self.observer_thread.join()  # Wait for the end of the observer_thread
 ```
+
+---
 
 ### Usage Example
 

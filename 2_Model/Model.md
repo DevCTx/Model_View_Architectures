@@ -86,6 +86,8 @@ class Task_CRUD_Model(Generic_CRUD_Model):
 ```
 ... and that's it ! **The model is created and modifiable !** Pretty cool, no ?!
 
+---
+
 ### Modifiable model
 
 The model can easily be modified by **swapping the class inherited** with any class derived from 
@@ -97,7 +99,9 @@ affect the other models and can be used by default if wished.
 
 More about : [Generic_Models](../2_Model/Generic_Models/Generic_Models.md)
 
-### Specific format
+---
+
+### Read format
 
 For this application, I also override the ***read_format*** method in the ***Task*** class to customize the format of 
 objects appearing in the list :  
@@ -135,6 +139,7 @@ the **file** or **database** is modified by another program.
 
 More about : [Observer_patterns](../2_Model/Observer_patterns/Observer_patterns.md)
 
+---
 
 ### The File Observer Handler within the Generic CRUD Model
 
@@ -241,6 +246,8 @@ This one calls the respective ***refresh*** method of the ***Task Manager*** and
 provided by the ***tkinter*** library to schedule its execution from at some point later in the ***main*** thread. 
 This is particularly required for the model using ***SQLITE3***.
 
+---
+
 ### Refresh Method
 
 ![Task_Manager_1_select2_Win](../2_Model/images/Task_Manager_1_select2_Win.png)
@@ -281,6 +288,8 @@ class Task_Manager_2:
         self.update_tasks_from_model()
         self.clear_pop_up_and_input_fields()
 ```
+
+---
 
 ### Add / Update / Delete Buttons
 

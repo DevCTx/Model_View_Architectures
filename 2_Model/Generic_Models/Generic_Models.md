@@ -16,12 +16,13 @@ Here is the presentation of the **Generic Models** developed to illustrate the s
 
 ## Generic CRUD Model
 
-This model creates a list of ***object type*** and the methods to **Create, Read, Update, and Delete** this type of 
-objects from/to this list.
+This model creates a **list of *object_type*** and the methods to **Create**, **Read**, **Update**, and **Delete** this 
+type of objects from/to this **list**.
 
 It is the **core of the CRUD models** and allows by inheritance to add these functionalities to any class for 
 manipulating data of any kind.
 
+---
 
 ### Initialization
 
@@ -31,8 +32,12 @@ To be used, a class representing the data must be defined with the **same intern
 ```python
 class Task:
 
-    def __init__(self, title: str, priority: int, active: bool = True, 
-                modified_on: datetime = datetime.now(), weight: float = 1.0):
+    def __init__(self, 
+                 title: str, 
+                 priority: int, 
+                 active: bool = True,
+                 modified_on: datetime = datetime.now(), 
+                 weight: float = 1.0):
         self.title: str = title
         self.priority: int = priority
         self.active: bool = active
@@ -45,6 +50,8 @@ Then the model can be defined by simply giving this **object type** to the ***Ge
 ```python
 tasks = Generic_CRUD_Model(Task)
 ```
+
+---
 
 ### Create / Read / Update / Delete
 
@@ -59,6 +66,8 @@ tasks.delete(0)
 
 **Update** and **Delete** will in addition use the index of the appropriate object to manipulate it in the list.   
 
+---
+
 ### Read Format
 
 The ***read*** method will return a list according to the ***read_format*** that can be overriden.
@@ -70,6 +79,8 @@ class Task:
         """ Optional: customizes the format for printing objects in the read list  """
         return tuple(self.__dict__.values())
 ```
+
+---
 
 ### Data in file or database
 
@@ -273,6 +284,9 @@ more appropriate for the **SQLITE3** database.
 | A first task    | 3         | 1      | 2023-07-26 11:55:46.780436 | 1.0    |
 | A modified task | 4         | 0      | 2023-07-26 11:55:46.835892 | 4.5    |
     
+
+---
+
 ### SQLITE3 File Observer 
 
 Please note that the system will notify the changes on the .sqlite3 file but not on the specific 'object_type' table.\

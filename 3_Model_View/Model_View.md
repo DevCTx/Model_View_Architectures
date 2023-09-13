@@ -80,6 +80,8 @@ As a result, the ***Task_Manager*** classes now requires two essential parameter
 during their initialization. The ***window*** parameter serves as master for their graphical frame, while the 
 ***task_model*** is retained for data operations. 
 
+---
+
 ### Notifications and refresh methods
 
 Additionally, they register themselves as **observers** for this model, enabling them to receive notifications 
@@ -169,6 +171,8 @@ Finally, since the ***notify*** method is invoked from the ***Generic_CRUD_Model
 there is no longer a need to explicitly request ***refresh*** calls within the methods responsible for creating, 
 updating, and deleting tasks within the ***Task Manager*** classes.
 
+---
+
 ### Integration of views in the same program
 
 Now, the 2 Task Managers can easily be created in the same program and share the same data file or database.
@@ -216,6 +220,9 @@ if __name__ == "__main__":
     task_manager_2.run()
     task_manager_1.run()
 ````
+---
+
+Let's go forward with the [4_Model_View_Controller](../4_Model_View_Controller/Model_View_Controller.md)
 
 ---
 [Model-View Architectures](../README.md) > [3_Model_View](../3_Model_View/Model_View.md)
