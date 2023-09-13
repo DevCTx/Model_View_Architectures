@@ -97,7 +97,7 @@ the ***create, read, update*** and ***delete*** methods are used.
 If a ***filename*** exists, the model also registers itself automatically as an ***observer*** on this file within the 
 system, via the **Python's watchdog mechanism**, to be **notified** if **another program modifies it**.
 
-More about : [Observer_patterns](../../2_Model/Observer_patterns/Observer_patterns.md)
+More about : [Observer_patterns](../../3_Model_View/Observer_patterns/Observer_patterns.md)
 
 ---
 
@@ -339,7 +339,7 @@ class Generic_CRUD_Model(Observable):
         self.notify_observers()
 ```
 
-More about : [Observer_patterns](../../2_Model/Observer_patterns/Observer_patterns.md)
+More about : [Observer_patterns](../../3_Model_View/Observer_patterns/Observer_patterns.md)
 
 ---
 
