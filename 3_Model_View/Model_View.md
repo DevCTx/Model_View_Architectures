@@ -19,7 +19,7 @@ This section explains :
 ## What is a View and why generate one ?
 
 In software architecture, a **View** represents the **presentation layer** of an application. 
-It provides an **interface** through which **users interact** with the data and functionalities of the application.
+It provides an **interface** for users to interact with application data and functionality.
 
 Separating the view from the rest of the application allows for a clear **distinction between the user interface and 
 the application's features and data**.
@@ -57,7 +57,7 @@ More about : [Generic_Models](../3_Model_View/Generic_Models/Generic_Models.md#u
 
 ## Modifications in the Task Manager Applications
 
-### Moving the view and model in the main application
+### Sharing the root window instance
 
 Following the recommendations of the [tkinter documentation](https://docs.python.org/3/library/tkinter.html)
 
@@ -82,7 +82,7 @@ during their initialization. The ***window*** parameter serves as master for the
 
 ---
 
-### Notifications and refresh methods
+### Registering views as observers
 
 Additionally, they register themselves as **observers** for this model, enabling them to receive notifications 
 about any modifications made **within the application**. 
@@ -103,7 +103,9 @@ class Task_Manager_1:
 ```
 ---
 
-The ***Task_CRUD_Model*** has also been deplaced to the ***main*** part to be shared if needed.
+### Setting up the shared model
+
+The ***Task_CRUD_Model*** has also been displaced to the ***main*** part to be shared within the application.
 It still uses a ***notify*** function, named ***file_modified***, as a parameter in its initialization which takes
 a method to call when the data file is modified.
 
@@ -124,12 +126,14 @@ if __name__ == "__main__":
 
 Initially, this function was named '***notify_on_file_modified***'. But because the ***Task_CRUD_Model*** registers 
 itself as an **observer**, and must define a ***notify*** method, it has been judicious to merge the two functions 
-into one the named '***notify***' method.
+into a single one named '***notify***'.
 
 ---
 
+### Optimizing the refresh calls
+
 A switching mechanism is also introduced to prevent multiple consecutive refresh requests, which can occur during 
-successive creations.
+successive creations. It simply triggers the ***notify_refresh*** boolean and run the refresh if it's not already done.
 
 In ***Task Manager 1*** :
 ```python
@@ -144,11 +148,11 @@ class Task_Manager_1:
     def notify(self, *args, **kwargs):
         """ Called when the file/db is modified by another process and when the data is modified by another view """
         if self.notify_refresh is False:
+            self.notify_refresh = True
             # The 'after' method from Tkinter library is employed to initiate the refresh within the main thread.
             # This setup is particularly requested when the system called this method to notify the application
             # about an external modification, especially when dealing with SQLITE3 files.
             self.window.after(0, self.refresh)
-            self.notify_refresh = True
 ```
 
 In ***Task Manager 2*** :
@@ -163,21 +167,25 @@ class Task_Manager_2:
     def notify(self, *args, **kwargs):
         """ Called when the file/db is modified by another process and when the data is modified by another view """
         if self.notify_refresh is False:
+            self.notify_refresh = True
             # The 'after' method from Tkinter library is employed to initiate the refresh within the main thread.
             # This setup is particularly requested when the system called this method to notify the application
             # about an external modification, especially when dealing with SQLITE3 files.
             self.window.after(0, self.refresh)
-            self.notify_refresh = True
 ```
 ---
 
+### Simplifying the refresh calls
+
 Finally, since the ***notify*** method is invoked from the ***Generic_CRUD_Model*** whenever a data modification occurs, 
-there is no longer a need to explicitly request ***refresh*** calls within the methods responsible for creating, 
-updating, and deleting tasks within the ***Task Manager*** classes.
+there is no longer the need to explicitly ***refresh*** the views.
+
+The ***refresh*** calls have thus been removed from the task creation, update and deletion methods within the 
+***Task Manager*** classes.
 
 ---
 
-### Integration of views in the same program
+## Integration of views in the same program
 
 Now, the 2 Task Managers can easily be created in the same program and share the same data file or database.
 
@@ -226,7 +234,9 @@ if __name__ == "__main__":
 ````
 ---
 
-Let's go forward with the [4_Model_View_Controller](../4_Model_View_Controller/Model_View_Controller.md)
+But you are right, the step of separating the view from the rest of the application has not been fully implemented.
+
+Let us therefore continue with the notion of [View Controller](../4_Model_View_Controller/Model_View_Controller.md).
 
 ---
 [Model-View Architectures](../README.md) > [3_Model_View](../3_Model_View/Model_View.md)

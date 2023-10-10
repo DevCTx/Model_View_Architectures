@@ -59,11 +59,11 @@ class Task_Manager_2:
     def notify(self, *args, **kwargs):
         """ Called when the file/db is modified by another process and when the data is modified by another view """
         if self.notify_refresh is False:
+            self.notify_refresh = True
             # The 'after' method from Tkinter library is employed to initiate the refresh within the main thread.
             # This setup is particularly requested when the system called this method to notify the application
             # about an external modification, especially when dealing with SQLITE3 files.
             self.window.after(0, self.refresh)
-            self.notify_refresh = True
     ###
 
     def _refresh_tasks_option_frame_list(self):
