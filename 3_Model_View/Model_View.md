@@ -94,7 +94,7 @@ class Task_Manager_1:
         ...
         self.window = window
         self.tasks = task_model
-        self.tasks.register_observer(self)  # Ask to be notified on modification
+        self.tasks.add_observer(self.notify)  # Ask to be notified on modification
         self.notify_refresh = False
         ...
         # TK imposes a single root window (Tk instance), the display has thus been modified to appear in a frame

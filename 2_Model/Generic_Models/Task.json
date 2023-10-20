@@ -10,7 +10,21 @@
     "title": "A modified task",
     "priority": 4,
     "active": false,
-    "modified_on": "2023-09-09 11:01:31.953244",
+    "modified_on": "2023-10-20 13:20:39.868625",
     "weight": 4.5
+  },
+  {
+    "title": "A first task",
+    "priority": 3,
+    "active": true,
+    "modified_on": "2023-10-20 13:20:39.826519",
+    "weight": 1.0
+  },
+  {
+    "title": "A second task",
+    "priority": 6,
+    "active": true,
+    "modified_on": "2023-10-20 13:20:39.855623",
+    "weight": 6.5
   }
 ]

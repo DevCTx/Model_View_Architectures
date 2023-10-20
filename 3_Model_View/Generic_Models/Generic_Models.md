@@ -322,7 +322,7 @@ the model simply calls the ***notify_observers*** method, which calls the ***not
 users.
 
 ```python
-from Observer_patterns.ObjectObserver import Observable
+from Observer_patterns.ObserverObject import Observable
 ...
 class Generic_CRUD_Model(Observable):
     ...
@@ -405,10 +405,10 @@ if __name__ == "__main__":
     tasks = Generic_CRUD_Model(Task)
 
     model_user1 = Model_User(tasks, lambda *args, **kwargs: print(f"User 1 notified"))
-    tasks.register_observer(model_user1)
+    tasks.add_observer(model_user1.notify)
 
     model_user2 = Model_User(tasks, lambda *args, **kwargs: print(f"User 2 notified"))
-    tasks.register_observer(model_user2)
+    tasks.add_observer(model_user2.notify)
     ...
     tasks.create("A first task", 3)
     ...

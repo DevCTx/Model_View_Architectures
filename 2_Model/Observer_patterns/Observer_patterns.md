@@ -29,22 +29,22 @@ The ***Observable*** object has no knowledge of the **Observer** objects but has
 This mechanism is possible by calling the ***notify*** method of each object registered in this list. \
 This therefore means that a ***notify*** method must be defined in **each observer** whatever its type.
 
-To show how to implement this step, an ***ObjectObserver*** class has been defined as an example with a ***notify*** 
-method and an automatic call to the ***register_observer*** method of the ***observable*** object during its 
+To show how to implement this step, an ***ObserverObject*** class has been defined as an example with a ***notify*** 
+method and an automatic call to the ***add_observer*** method of the ***observable*** object during its 
 initialization.
 
 ```python
-class ObjectObserver:
+class ObserverObject:
 
     def __init__(self, observable):
-        observable.register_observer(self)
+        observable.add_observer(self.notify)
 
     def notify(self, observable, *args, **kwargs):
         print(self, "Got", args, kwargs, "From", observable)
 ```
 
 The ***Observable*** class has only 3 little methods :
-* ***register_observer*** : for registering an observer into the 'observers' list when the observation is needed.
+* ***add_observer*** : for registering an observer into the 'observers' list when the observation is needed.
 * ***remove_observer*** : for removing an observer from the 'observers' list when the observation is not more needed.
 * ***notify_observers*** : for calling the notify methods of each object registered in the 'observers' list.
 
@@ -54,22 +54,20 @@ class Observable:
     def __init__(self):
         self._observers = []
 
-    def register_observer(self, observer):
-        if not hasattr(observer,"notify") :
-            raise NotImplementedError("The class needs a 'notify' method in order to register as an observer")
+    def add_observer(self, observer : callable):
         if observer not in self._observers:
             self._observers.append(observer)
 
-    def remove_observer(self, observer):
+    def remove_observer(self, observer : callable):
         if observer in self._observers:
             self._observers.remove(observer)
 
     def notify_observers(self, *args, **kwargs):
-        for obs in self._observers:
-            obs.notify(self, *args, **kwargs)
+        for observer in self._observers:
+            observer(*args, **kwargs)
 ```
 
-***Note***: It might have been interesting to create an **abstract** class of ***ObjectObserver*** to make the user 
+***Note***: It might have been interesting to create an **abstract** class of ***ObserverObject*** to make the user 
 derived from it. But since the models are already generic and maybe not so easy to understand, I decided not to overload 
 the code and to keep it simple by integrating the mechanism directly.
 

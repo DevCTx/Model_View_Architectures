@@ -21,11 +21,11 @@ from Observer_patterns.FileObserverHandler import FileObserverHandler
 #     from ..Observer_patterns.FileObserverHandler import FileObserverHandler
 
 ### (Observable) Added to share the Model between Views
-from Observer_patterns.ObjectObserver import Observable
+from Observer_patterns.Observables import Observable
 
 # if __name__ == "__main__":
 # else :
-#     from ..Observer_patterns.ObjectObserver import Observable
+#     from ..Observer_patterns.ObserverObject import Observable
 ###
 
 class Generic_CRUD_Model(Observable):           ### (Observable) Added to share the Model between Views
@@ -266,10 +266,10 @@ if __name__ == "__main__":
 
     ### Added to share the Model between Views
     model_user1 = Model_User(tasks, lambda *args, **kwargs: print(f"User 1 notified"))
-    tasks.register_observer(model_user1)
+    tasks.add_observer(model_user1.notify)
 
     model_user2 = Model_User(tasks, lambda *args, **kwargs: print(f"User 2 notified"))
-    tasks.register_observer(model_user2)
+    tasks.add_observer(model_user2.notify)
     ###
 
     # Create a first task

@@ -17,7 +17,7 @@ class Task_Manager_2:
         ### Modified to share the model between views
         self.window = window
         self.tasks = task_model
-        self.tasks.register_observer(self)  # Ask to be notified on modification
+        self.tasks.add_observer(self.notify)  # Ask to be notified on modification
         self.notify_refresh = False
         ###
 
