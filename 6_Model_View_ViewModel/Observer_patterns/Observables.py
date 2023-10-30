@@ -1,4 +1,5 @@
 # https://en.wikipedia.org/wiki/Observer_pattern#Python
+import atexit
 from difflib import Differ
 
 
@@ -131,17 +132,25 @@ class ObservableList(Observable, list):
 
 
 class ObserverObject:
-    def __init__(self, observable):
-        observable.add_observer(self.notify)
+    def __init__(self, name, observable):
+        self.name = name
+        self.observable = observable
+        self.observable.add_observer(self.notify)
+        print(self.name, "Add self.notify to observer list of", self.observable.__class__.__name__)
+        atexit.register(self.on_closing)
 
-    def notify(self, observable, *args, **kwargs):
-        print(self, "Got", args, kwargs, "From", observable)
+    def on_closing(self):
+        self.observable.remove_observer(self.notify)
+        print(self.name, "Remove self.notify from observer list of", self.observable.__class__.__name__)
+
+    def notify(self, *args, **kwargs):
+        print(self.name, "Got", args, kwargs, "From", self.observable.__class__.__name__)
 
 
 if __name__ == "__main__":
     subject = Observable()
-    object_observer1 = ObserverObject(subject)
-    object_observer2 = ObserverObject(subject)
+    object_observer1 = ObserverObject("object_observer1", subject)
+    object_observer2 = ObserverObject("object_observer2", subject)
     subject.notify_observers("notification", kw="test")
 
     ### Output :
@@ -150,6 +159,7 @@ if __name__ == "__main__":
 
     op2 = ObservableProperty('test2')
     print(f"{op2.get()=}")
+    object_observer3 = ObserverObject("object_observer3", op2)
 
     collect = ObservableList(['test1', 'test2', 'test3'])
     print(f"{collect[1].get()=}")
@@ -158,7 +168,7 @@ if __name__ == "__main__":
     collect.append("test4")
     print(f"{collect=}")
 
-    print(f"\n{op2.set('try')=}")
+    print(f"\n{op2.set('try')=}")   # set a notification to object_observer3 before
     print(f"{op2.get()=}\n")
 
     print(f"{collect[1].set('try2')=}")

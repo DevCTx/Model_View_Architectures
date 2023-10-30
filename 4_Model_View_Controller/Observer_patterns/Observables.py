@@ -1,4 +1,5 @@
 # https://en.wikipedia.org/wiki/Observer_pattern#Python
+import atexit
 
 
 class Observable:
