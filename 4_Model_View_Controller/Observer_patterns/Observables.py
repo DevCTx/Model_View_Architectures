@@ -19,20 +19,31 @@ class Observable:
 
 
 class ObserverObject:
-    def __init__(self, observable):
-        observable.add_observer(self.notify)
+    def __init__(self, name, observable):
+        self.name = name
+        self.observable = observable
+        self.observable.add_observer(self.notify)
+        print(self.name, "Add self.notify to observer list of", self.observable.__class__.__name__)
+        atexit.register(self.on_closing)
 
-    def notify(self, observable, *args, **kwargs):
-        print(self, "Got", args, kwargs, "From", observable)
+    def on_closing(self):
+        self.observable.remove_observer(self.notify)
+        print(self.name, "Remove self.notify from observer list of", self.observable.__class__.__name__)
+
+    def notify(self, *args, **kwargs):
+        print(self.name, "Got", args, kwargs, "From", self.observable.__class__.__name__)
 
 
 if __name__ == "__main__":
     subject = Observable()
-    object_observer1 = ObserverObject(subject)
-    object_observer2 = ObserverObject(subject)
+    object_observer1 = ObserverObject("object_observer1", subject)
+    object_observer2 = ObserverObject("object_observer2", subject)
     subject.notify_observers("notification", kw="test")
 
-### Output :
-# <__main__.ObserverObject object at 0x00000165AC0B9490> Got ('notification',) {'kw': 'test'} From <__main__.Observable object at 0x00000165AC0B9410>
-# <__main__.ObserverObject object at 0x00000165AC0B9610> Got ('notification',) {'kw': 'test'} From <__main__.Observable object at 0x00000165AC0B9410>
-
+#### Output :
+# object_observer1 Add self.notify to observer list of Observable
+# object_observer2 Add self.notify to observer list of Observable
+# object_observer1 Got ('notification',) {'kw': 'test'} From Observable
+# object_observer2 Got ('notification',) {'kw': 'test'} From Observable
+# object_observer2 Remove self.notify from observer list of Observable
+# object_observer1 Remove self.notify from observer list of Observable
