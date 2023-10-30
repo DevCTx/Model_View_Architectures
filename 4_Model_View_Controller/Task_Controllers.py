@@ -1,3 +1,4 @@
+import atexit
 import traceback
 from datetime import datetime
 
@@ -43,10 +44,15 @@ class Main_Controller:
 
 class Button_List_Controller(Main_Controller):
 
-    def __init__(self, task_model, view):
+    def __init__(self, task_model, observer : callable):
         super().__init__()
         self.tasks = task_model
-        self.tasks.add_observer(view.notify)
+        self.observer = observer
+        self.tasks.add_observer(observer)
+        atexit.register(self.on_closing)
+
+    def on_closing(self):
+        self.tasks.remove_observer(self.observer)
 
     def add_button(self, task_name, task_priority):
         self._create_task(task_name, int(task_priority))
@@ -63,10 +69,15 @@ class Button_List_Controller(Main_Controller):
 
 class Two_Columns_Controller(Main_Controller):
 
-    def __init__(self, task_model, view):
+    def __init__(self, task_model, observer : callable):
         super().__init__()
         self.tasks = task_model
-        self.tasks.add_observer(view.notify)
+        self.observer = observer
+        self.tasks.add_observer(observer)
+        atexit.register(self.on_closing)
+
+    def on_closing(self):
+        self.tasks.remove_observer(self.observer)
 
     def add_button(self, task_name, task_priority):
         self._create_task(task_name, int(task_priority))
@@ -83,10 +94,15 @@ class Two_Columns_Controller(Main_Controller):
 
 class Two_Rows_Controller(Main_Controller):
 
-    def __init__(self, task_model, view):
+    def __init__(self, task_model, observer : callable):
         super().__init__()
         self.tasks = task_model
-        self.tasks.add_observer(view.notify)
+        self.observer = observer
+        self.tasks.add_observer(observer)
+        atexit.register(self.on_closing)
+
+    def on_closing(self):
+        self.tasks.remove_observer(self.observer)
 
     def add_button(self, task_name, task_priority):
         self._create_task(task_name, int(task_priority))
@@ -106,10 +122,15 @@ class Two_Rows_Controller(Main_Controller):
 
 class Bar_Chart_Controller(Main_Controller):
 
-    def __init__(self, task_model, view):
+    def __init__(self, task_model, observer : callable):
         super().__init__()
         self.tasks = task_model
-        self.tasks.add_observer(view.notify)
+        self.observer = observer
+        self.tasks.add_observer(observer)
+        atexit.register(self.on_closing)
+
+    def on_closing(self):
+        self.tasks.remove_observer(self.observer)
 
     def update_tasks_for_barchart(self):
         return self._read_tasks()

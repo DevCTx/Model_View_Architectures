@@ -17,7 +17,7 @@ class Button_List_View(tk.LabelFrame):
         self.pack(side=tk.RIGHT, fill=tk.BOTH, expand=True)
 
         # delegate all interactions with the model to the Controller
-        self.controller = Button_List_Controller(task_model, self)
+        self.controller = Button_List_Controller(task_model, self.notify)
 
         self.popup_window = None
         self.create_the_new_task_frame()
@@ -210,7 +210,7 @@ class Two_Columns_View(tk.LabelFrame):
         self.pack(side=tk.RIGHT, fill=tk.BOTH, expand=True)
 
         # delegate all interactions with the model to the Controller
-        self.controller = Two_Columns_Controller(task_model, self)
+        self.controller = Two_Columns_Controller(task_model, self.notify)
 
         self.entry_var = None
         self.priority_var = None
@@ -360,7 +360,7 @@ class Two_Rows_View(tk.LabelFrame):
         self.pack(side=tk.BOTTOM, fill=tk.X)
 
         # delegate all interactions with the model to the Controller
-        self.controller = Two_Rows_Controller(task_model, self)
+        self.controller = Two_Rows_Controller(task_model, self.notify)
 
         self.entry_var_new = None
         self.priority_var_new = None
@@ -469,14 +469,19 @@ class Two_Rows_View(tk.LabelFrame):
                                   borderwidth=1,
                                   relief=tk.RIDGE)
             self.entry_list.append(task_entry)
-
             self.entry_list[col].grid(row=0, column=col, sticky=tk.NSEW, padx=2, pady=(2, 0))
 
             # The width of the entry automatically adjust with the size of the variable (when typing)
-            self.entry_list[col].bind("<KeyRelease>", lambda event, column=col: self.adjust_entry_width(column))
+            self.entry_list[col].bind(
+                sequence="<KeyRelease>",
+                func=lambda event, column=col: self.adjust_entry_width(column)
+            )
 
-            # Initialize <Return> keypad or <FocusOut> to validate the task_entry and update it to the model
-            self.entry_list[col].bind("<Return>", lambda event, column=col: self.update_delete_label(column))
+            # Initialize <Return> keypad to validate the task_entry and update it to the model
+            self.entry_list[col].bind(
+                sequence="<Return>",
+                func=lambda event, column=col: self.update_delete_label(column)
+            )
 
             # Set an Option Menu to see/modify the priority
             priority_var = tk.StringVar(self.scrollable_table, task[1])
@@ -542,7 +547,7 @@ class Bar_Chart_View(tk.LabelFrame):
         super().__init__(root_window, text=self.__class__.__name__, labelanchor=tk.NW, **kwargs)
         self.pack(side=tk.TOP, fill=tk.BOTH, expand=True)
 
-        self.controller = Bar_Chart_Controller(task_model, self)
+        self.controller = Bar_Chart_Controller(task_model, self.notify)
 
         # Create a graph in a Canvas with Matplotlib
         self.figure, self.ax = plt.subplots(figsize=(6, 4))
