@@ -23,7 +23,7 @@ class Task_Manager_1:
         self.window = window
         self.tasks = task_model
         self.tasks.add_observer(self.notify)  # Ask to be notified on modification
-        self.notify_refresh = False
+        self.refreshing = False
         ###
 
         ### Modified to share the model between views
@@ -73,22 +73,19 @@ class Task_Manager_1:
             self.tree.insert("", tk.END, values=task, tags=task)  # 'tags' converts the values to compatible str
 
     def refresh(self, *args, **kwargs):
+        self.refreshing = True
         self.update_tasks_from_model()
         self.clear_selection_and_input_fields()
 
         ### Modified to share the model between views
-        self.notify_refresh = False
+        self.refreshing = False
         ###
 
     ### Modified to share the model between views
     def notify(self, *args, **kwargs):
         """ Called when the file/db is modified by another process and when the data is modified by another view """
-        if self.notify_refresh is False:
-            self.notify_refresh = True
-            # The 'after' method from Tkinter library is employed to initiate the refresh within the main thread.
-            # This setup is particularly requested when the system called this method to notify the application
-            # about an external modification, especially when dealing with SQLITE3 files.
-            self.window.after(0, self.refresh)
+        if self.refreshing is False:
+            self.refresh()
     ###
 
     def on_treeview_select(self, event):

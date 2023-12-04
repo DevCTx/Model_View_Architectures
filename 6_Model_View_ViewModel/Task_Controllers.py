@@ -44,11 +44,11 @@ class Main_Controller:
 
 class Button_List_Controller(Main_Controller):
 
-    def __init__(self, task_model, observer : callable):
+    def __init__(self, task_model, observer: callable):
         super().__init__()
         self.tasks = task_model
         self.observer = observer
-        self.tasks.add_observer(observer)
+        self.tasks.add_observer(self.observer)
         atexit.register(self.on_closing)
 
     def on_closing(self):
@@ -69,11 +69,11 @@ class Button_List_Controller(Main_Controller):
 
 class Two_Columns_Controller(Main_Controller):
 
-    def __init__(self, task_model, observer : callable):
+    def __init__(self, task_model, observer: callable):
         super().__init__()
         self.tasks = task_model
         self.observer = observer
-        self.tasks.add_observer(observer)
+        self.tasks.add_observer(self.observer)
         atexit.register(self.on_closing)
 
     def on_closing(self):
@@ -94,11 +94,11 @@ class Two_Columns_Controller(Main_Controller):
 
 class Two_Rows_Controller(Main_Controller):
 
-    def __init__(self, task_model, observer : callable):
+    def __init__(self, task_model, observer: callable):
         super().__init__()
         self.tasks = task_model
         self.observer = observer
-        self.tasks.add_observer(observer)
+        self.tasks.add_observer(self.observer)
         atexit.register(self.on_closing)
 
     def on_closing(self):
@@ -122,11 +122,11 @@ class Two_Rows_Controller(Main_Controller):
 
 class Bar_Chart_Controller(Main_Controller):
 
-    def __init__(self, task_model, observer : callable):
+    def __init__(self, task_model, observer: callable):
         super().__init__()
         self.tasks = task_model
         self.observer = observer
-        self.tasks.add_observer(observer)
+        self.tasks.add_observer(self.observer)
         atexit.register(self.on_closing)
 
     def on_closing(self):
@@ -155,8 +155,8 @@ if __name__ == "__main__":
     my_task_model = Task_CRUD_Model(file_modified)  # which defines the Generic_CRUD_Model to use
 
     # Create the controller of the view using the model
-    controller = Two_Columns_Controller(my_task_model, View_Simulator())
-    controller2 = Bar_Chart_Controller(my_task_model, View_Simulator())
+    controller = Two_Columns_Controller(my_task_model, my_view.notify)
+    controller2 = Bar_Chart_Controller(my_task_model, my_view.notify)
 
     # Output:
     # View notified for a refresh

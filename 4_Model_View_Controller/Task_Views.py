@@ -1,20 +1,25 @@
 import textwrap
-from datetime import datetime
+import io
 
 import tkinter as tk
 from tkinter import ttk
+from PIL import Image, ImageTk
 
-from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
-import matplotlib.pyplot as plt
+import matplotlib
+# Avoid UserWarning: Starting a Matplotlib GUI outside of the main thread will likely fail.
+matplotlib.use('agg')
+from matplotlib import pyplot as plt
 
-from Task_Controllers import Button_List_Controller, Two_Rows_Controller, Two_Columns_Controller, Bar_Chart_Controller
+from Task_Controllers import Button_List_Controller
+from Task_Controllers import Two_Rows_Controller
+from Task_Controllers import Two_Columns_Controller
+from Task_Controllers import Bar_Chart_Controller
 
 
 class Button_List_View(tk.LabelFrame):
 
     def __init__(self, root_window, task_model, **kwargs):
         super().__init__(root_window, text=self.__class__.__name__, labelanchor=tk.NW, **kwargs)
-        self.pack(side=tk.RIGHT, fill=tk.BOTH, expand=True)
 
         # delegate all interactions with the model to the Controller
         self.controller = Button_List_Controller(task_model, self.notify)
@@ -32,7 +37,7 @@ class Button_List_View(tk.LabelFrame):
         self.popup_window = None
 
         self.tasks_list = None
-        self.notify_refresh = False
+        self.refreshing = False
         self.refresh()  # engaging a first loading of the data
 
     def create_the_new_task_frame(self):
@@ -192,22 +197,21 @@ class Button_List_View(tk.LabelFrame):
         self.reset_input_fields()
 
     def refresh(self):
+        self.refreshing = True
         self.update_tasks_canvas()
         self.clear_pop_up_and_input_fields()
-        self.notify_refresh = False
+        self.refreshing = False
 
     def notify(self, *args, **kwargs):
         """ Called when the file/db is modified by another process and when the data is modified by another view """
-        if self.notify_refresh is False:
-            self.notify_refresh = True
-            self.after(0, self.refresh)
+        if self.refreshing is False:
+            self.refresh()
 
 
 class Two_Columns_View(tk.LabelFrame):
 
     def __init__(self, root_window, task_model, **kwargs):
         super().__init__(root_window, text=self.__class__.__name__, labelanchor=tk.NW, **kwargs)
-        self.pack(side=tk.RIGHT, fill=tk.BOTH, expand=True)
 
         # delegate all interactions with the model to the Controller
         self.controller = Two_Columns_Controller(task_model, self.notify)
@@ -222,7 +226,7 @@ class Two_Columns_View(tk.LabelFrame):
         self.selected_item = None
         self.create_the_main_task_frame()
 
-        self.notify_refresh = False
+        self.refreshing = False
         self.refresh()  # engaging a first loading of the data
 
     def create_the_new_task_frame(self):
@@ -337,27 +341,23 @@ class Two_Columns_View(tk.LabelFrame):
             self.tree.insert("", tk.END, values=task, tags=task)  # 'tags' converts the values to compatible str
 
     def refresh(self):
+        self.refreshing = True
         # Get the tasks from the model
         self.update_tasks_main_frame()
         # Clear all selections and init the fields to default values
         self.clear_selection_and_input_fields()
-        self.notify_refresh = False
+        self.refreshing = False
 
     def notify(self, *args, **kwargs):
         """ Called when the file/db is modified by another process and when the data is modified by another view """
-        if self.notify_refresh is False:
-            self.notify_refresh = True
-            # The 'after' method from Tkinter library is employed to initiate the refresh within the main thread.
-            # This setup is particularly requested when the system called this method to notify the application
-            # about an external modification, especially when dealing with SQLITE3 files.
-            self.after(0, self.refresh)
+        if self.refreshing is False:
+            self.refresh()
 
 
 class Two_Rows_View(tk.LabelFrame):
 
     def __init__(self, root_window, task_model, **kwargs):
         super().__init__(root_window, text=self.__class__.__name__, labelanchor=tk.NW, **kwargs)
-        self.pack(side=tk.BOTTOM, fill=tk.X)
 
         # delegate all interactions with the model to the Controller
         self.controller = Two_Rows_Controller(task_model, self.notify)
@@ -374,8 +374,9 @@ class Two_Rows_View(tk.LabelFrame):
         self.entry_var_list = None
         self.entry_list = None
         self.priority_var_list = None
+
+        self.refreshing = False
         self.refresh()  # engaging a first loading of the data
-        self.notify_refresh = False
 
     def create_the_new_task_frame(self):
         new_task_frame = tk.Frame(self, bg="white")
@@ -525,171 +526,224 @@ class Two_Rows_View(tk.LabelFrame):
             self.controller.update_priority(task_to_modify, entry_on_col, new_priority_on_col)
 
     def refresh(self):
+        self.refreshing = True
         # Get the tasks from the model
         self.update_tasks_canvas()
         # Clear all selections and init the fields to default values
         self.reset_input_fields()
-        self.notify_refresh = False
+        self.refreshing = False
 
     def notify(self, *args, **kwargs):
         """ Called when the file/db is modified by another process and when the data is modified by another view """
-        if self.notify_refresh is False:
-            self.notify_refresh = True
-            # The 'after' method from Tkinter library is employed to initiate the refresh within the main thread.
-            # This setup is particularly requested when the system called this method to notify the application
-            # about an external modification, especially when dealing with SQLITE3 files.
-            self.after(0, self.refresh)
+        if self.refreshing is False:
+            self.refresh()
 
 
 class Bar_Chart_View(tk.LabelFrame):
 
     def __init__(self, root_window, task_model, **kwargs):
         super().__init__(root_window, text=self.__class__.__name__, labelanchor=tk.NW, **kwargs)
-        self.pack(side=tk.TOP, fill=tk.BOTH, expand=True)
 
         self.controller = Bar_Chart_Controller(task_model, self.notify)
+        self.tasks = []
 
-        # Create a graph in a Canvas with Matplotlib
-        self.figure, self.ax = plt.subplots(figsize=(6, 4))
-        self.canvas = FigureCanvasTkAgg(figure=self.figure, master=self)
-        # Clean up the canvas before closing the window
-        root_window.protocol("WM_DELETE_WINDOW", self.on_window_close)
+        self.image_label = tk.Label(
+            master=self,
+            text="No task to display",
+            font=("Helvetica", 14),
+            image=""
+        )
 
-        # Create a label in case of no task to display
-        self.message_label = tk.Label(self, text="No task to display", font=("Helvetica", 16))
+        self.configure_event_id = None
+        self.bind("<Configure>", self.on_configure)
 
-        self.notify_refresh = False
+        self.refreshing = False
         self.refresh()  # engaging a first loading of the data
 
-    def on_window_close(self):
-        # Clean up the canvas
-        if hasattr(self, 'canvas'):
-            self.canvas.get_tk_widget().destroy()
-        self.quit()
+    def on_configure(self, event):
+        # Resize the image only when the window size did not change for 50ms to avoid lags when resizing
+        if self.configure_event_id:
+            self.after_cancel(self.configure_event_id)
+        self.configure_event_id = self.after(50, self.resize_image)
 
-    def refresh_canvas(self):
-        tasks = self.controller.update_tasks_for_barchart()
+    def resize_image(self):
+        x_borders = 8   # 2 * 4
+        y_borders = 23  # 2 * 4 + 15 (text of label frame)
+        if len(self.tasks) > 0:
+            self.set_image_label(super().winfo_width() - x_borders, super().winfo_height() - y_borders)
 
-        if not tasks:
-            # Clear the previous graph if any
-            if hasattr(self, 'ax'):
-                self.ax.clear()
-            if hasattr(self, 'canvas'):
-                self.canvas.get_tk_widget().pack_forget()
-            self.message_label.pack(fill=tk.BOTH, expand=True)
+    def refresh_image_label(self):
+        self.tasks = self.controller.update_tasks_for_barchart()
+
+        self.image_label.pack_forget()  # Allow to the image to be resized properly
+        if len(self.tasks) == 0:
+            self.set_text_label()
         else:
-            # Hide the "No tasks to display" label if it's currently packed
-            self.message_label.pack_forget()
+            self.set_image_label(600, 400)
+        self.image_label.pack(fill=tk.BOTH, expand=True)
 
-            task_names, priorities_int = zip(*[(task[0], task[1]) for task in tasks])
+    def set_text_label(self):
+        self.image_label.config(text="No task to display", image="", padx=20)
+        self.image_label.image = None
 
-            # The highest bar will be the highest priority so the lowest value (the bigger is priority 1)
-            priority_labels = {
-                '1': 5,
-                '2': 4,
-                '3': 3,
-                '4': 2,
-                '5': 1
-            }
-            priorities_graph = [priority_labels[str(priority_int)] for priority_int in priorities_int]
+    def set_image_label(self, width, height):
+        # Update the content of the new graph
+        image_data = self.design_chart(width, height)
 
-            # Clear the previous graph if any
-            if hasattr(self, 'ax'):
-                self.ax.clear()
+        # Create a PhotoImage object from the base64-encoded image
+        image = Image.open(io.BytesIO(image_data))
+        photo = ImageTk.PhotoImage(image)
 
-            # Create a new bar graph using pyplot
-            x_values = range(len(task_names))
-            self.ax.bar(x_values, priorities_graph, color='skyblue')
+        # This line keeps a reference to the image to prevent it from being garbage collected
+        self.image_label.config(text="", image=photo, padx=0)
+        self.image_label.image = photo
 
-            # Label the axes
-            self.ax.set_ylabel('Priority')
-            self.ax.set_yticks(list(priority_labels.values()))
-            self.ax.set_yticklabels(list(priority_labels.keys()))
+    def design_chart(self, width, height):
+        DPI = 100
+        # Create a new figure and axis
+        figure, ax = plt.subplots(figsize=(width / DPI, height / DPI), dpi=DPI)
 
-            # Convert the range object to a list of integers
-            tick_positions = list(range(len(task_names)))
-            # Wrap task names to fit the bar width
-            wrapped_task_names = [textwrap.fill(task_name, width=16) for task_name in task_names]
-            # Set the positions of the ticks and their labels
-            self.ax.set_xticks(tick_positions)
-            self.ax.set_xticklabels(wrapped_task_names, rotation=45)
+        task_names, priorities_int = zip(*[(task[0], task[1]) for task in self.tasks])
 
-            # Auto Adjust the position of the graph within the figure according to the length of task names
-            max_len = max([len(n) for n in task_names])
-            enlarge_bottom = 0.1 if max_len <= 4 \
-                else 0.2 if max_len <= 8 \
-                else 0.25 if max_len <= 16 \
-                else 0.3 if max_len <= 32 \
-                else 0.4
-            self.ax.figure.subplots_adjust(bottom=enlarge_bottom, top=0.95)
+        # The highest bar will be the highest priority so the lowest value (the bigger is priority 1)
+        priority_labels = {
+            '1': 5,
+            '2': 4,
+            '3': 3,
+            '4': 2,
+            '5': 1
+        }
+        priorities_graph = [priority_labels[str(priority_int)] for priority_int in priorities_int]
 
-            self.canvas.draw()
-            self.canvas.get_tk_widget().pack(fill=tk.BOTH, expand=True)
+        # Create a new bar graph using pyplot
+        x_values = range(len(task_names))
+        ax.bar(x_values, priorities_graph, color='skyblue')
+
+        # Label the axes
+        ax.set_ylabel('Priority')
+        ax.set_yticks(list(priority_labels.values()))
+        ax.set_yticklabels(list(priority_labels.keys()))
+
+        # Convert the range object to a list of integers
+        tick_positions = list(range(len(task_names)))
+        # Wrap task names to fit the bar width
+        wrapped_task_names = [textwrap.fill(task_name, width=16) for task_name in task_names]
+        # Set the positions of the ticks and their labels
+        ax.set_xticks(tick_positions)
+        ax.set_xticklabels(wrapped_task_names, rotation=45)
+
+        # Auto Adjust the position of the graph within the figure according to the length of task names
+        max_len = max([len(n) for n in task_names])
+        enlarge_bottom = 0.1 if max_len <= 4 \
+            else 0.2 if max_len <= 8 \
+            else 0.25 if max_len <= 16 \
+            else 0.3 if max_len <= 32 \
+            else 0.4
+        ax.figure.subplots_adjust(bottom=enlarge_bottom, top=0.95)
+
+        # Create a BytesIO buffer to store the image in memory in binary
+        buffer = io.BytesIO()
+        # Save the plot in the BytesIO buffer instead of a file in binary
+        plt.savefig(buffer, format='png')
+        # Delete the figure and close the plot after saving it to the buffer
+        figure.clf()
+        plt.close()
+
+        # Retrieve the image data as a byte string
+        buffer.seek(0)
+        image_data = buffer.getvalue()
+        buffer.close()
+        return image_data
 
     def refresh(self):
+        self.refreshing = True
         # Get the tasks from the model
-        self.refresh_canvas()
-        self.notify_refresh = False
+        self.refresh_image_label()
+        self.refreshing = False
 
     def notify(self, *args, **kwargs):
         """ Called when the data is modified by another view """
-        if self.notify_refresh is False:
-            self.notify_refresh = True
-            self.after(0, self.refresh)
+        if self.refreshing is False:
+            self.refresh()
 
 
 if __name__ == "__main__":
 
-    class Model_Simulator:
-        def __init__(self):
-            print("init a task model")
-            self.tasks_list = [
-                ('Task 1', 1, datetime(2023, 7, 25, 20, 48, 22, 702207)),
-                ('Task 2', 2, datetime(2023, 7, 25, 20, 48, 22, 702208)),
-                ('Task 3', 3, datetime(2023, 7, 25, 20, 48, 22, 702209)),
-                ('Task 4', 4, datetime(2023, 7, 25, 20, 48, 22, 702210)),
-                ('Task 5', 5, datetime(2023, 7, 25, 20, 48, 22, 702209)),
-                ('Task 6', 1, datetime(2023, 7, 25, 20, 48, 22, 702210)),
-            ]
-            self.observers = []
+    # MODEL SIMULATOR
+    # from Observer_patterns.Observables import Observable
+    #
+    # class Model_Simulator(Observable):
+    #     def __init__(self):
+    #         super().__init__()
+    #         print("init a task model")
+    #         self.tasks_list = [
+    #             ('Task 1', 1, datetime(2023, 7, 25, 20, 48, 22, 702207)),
+    #             ('Task 2', 2, datetime(2023, 7, 25, 20, 48, 22, 702208)),
+    #             ('Task 3', 3, datetime(2023, 7, 25, 20, 48, 22, 702209)),
+    #             ('Task 4', 4, datetime(2023, 7, 25, 20, 48, 22, 702210)),
+    #             ('Task 5', 5, datetime(2023, 7, 25, 20, 48, 22, 702209)),
+    #             ('Task 6', 1, datetime(2023, 7, 25, 20, 48, 22, 702210)),
+    #         ]
+    #
+    #     def create(self, task_name, task_priority):
+    #         print(f"create a task into the model : {task_name=} {task_priority=}")
+    #         self.tasks_list.append((task_name, task_priority, datetime(2023, 7, 25, 20, 48, 22, 702207)))
+    #         self.notify_observers()
+    #
+    #     def update(self, selected_item, new_name, new_priority):
+    #         print(f"update a task into the model : {selected_item=} {new_name=} {new_priority=}")
+    #         self.tasks_list[selected_item] = (new_name, new_priority, datetime(2023, 7, 25, 20, 48, 22, 702207))
+    #         self.notify_observers()
+    #
+    #     def delete(self, selected_item):
+    #         print(f"delete a task from the model : {selected_item=} ")
+    #         self.tasks_list.__delitem__(selected_item)
+    #         self.notify_observers()
+    #
+    #     def read(self):
+    #         print(f"reads tasks from the model : {self.tasks_list=}")
+    #         return self.tasks_list
+    #
+    # model = Model_Simulator()
 
-        def add_observer(self, observer : callable):
-            self.observers.append(observer)
-            print(f"add_observer {observer=} on the task model")
+    # MODEL
+    from Task_CRUD_Model import Task_CRUD_Model
 
-        def create(self, task_name, task_priority):
-            print(f"create a task into the model : {task_name=} {task_priority=}")
-            self.tasks_list.append((task_name, task_priority, datetime(2023, 7, 25, 20, 48, 22, 702207)))
-            self.notify()
+    button_list_presenter = None
+    two_columns_presenter = None
+    two_rows_presenter = None
+    bar_chart_presenter = None
 
-        def update(self, selected_item, new_name, new_priority):
-            print(f"update a task into the model : {selected_item=} {new_name=} {new_priority=}")
-            self.tasks_list[selected_item] = (new_name, new_priority, datetime(2023, 7, 25, 20, 48, 22, 702207))
-            self.notify()
+    def file_modified(*args, **kwargs):
+        """ Called when the file is modified """
+        if button_list_view:
+            button_list_view.notify(*args, **kwargs)
+        if two_columns_view:
+            two_columns_view.notify(*args, **kwargs)
+        if two_rows_view:
+            two_rows_view.notify(*args, **kwargs)
+        if bar_chart_view:
+            bar_chart_view.notify(*args, **kwargs)
 
-        def delete(self, selected_item):
-            print(f"delete a task from the model : {selected_item=} ")
-            self.tasks_list.__delitem__(selected_item)
-            self.notify()
-
-        def read(self):
-            print(f"reads tasks from the model : {self.tasks_list=}")
-            return self.tasks_list
-
-        def notify(self):
-            for observer in self.observers:
-                observer.notify()
-
+    model = Task_CRUD_Model(file_modified)  # Create a connection to the Model
 
     window = tk.Tk()
     window.title("Task Manager 1")
     window.config(background="grey")
 
-    model_simulator = Model_Simulator()
+    button_list_view = Button_List_View(window, model)
+    two_columns_view = Two_Columns_View(window, model)
+    two_rows_view = Two_Rows_View(window, model)
+    bar_chart_view = Bar_Chart_View(window, model)
 
-    view1 = Two_Rows_View(window, model_simulator)
-    view2 = Bar_Chart_View(window, model_simulator)
-    view3 = Button_List_View(window, model_simulator)
-    view4 = Two_Columns_View(window, model_simulator)
+    button_list_view.grid(column=0, row=0, sticky=tk.NSEW)
+    two_columns_view.grid(column=1, row=0, sticky=tk.NSEW)
+    bar_chart_view.grid(column=2, row=0, sticky=tk.NSEW)
+    two_rows_view.grid(column=0, columnspan=3, row=1, sticky=tk.NSEW)
+
+    window.grid_columnconfigure(0, weight=1)
+    window.grid_columnconfigure(1, weight=1)
+    window.grid_rowconfigure(0, weight=1)
+    window.grid_rowconfigure(1, weight=0)
 
     window.mainloop()

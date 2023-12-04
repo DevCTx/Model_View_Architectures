@@ -1,5 +1,4 @@
 from datetime import datetime
-from typing import Callable
 
 from Generic_Models.Generic_CRUD_Model import Generic_CRUD_Model
 from Generic_Models.Generic_CSV_CRUD_Model import Generic_CSV_CRUD_Model
@@ -37,7 +36,7 @@ class Task_CRUD_Model(Generic_SQLITE3_CRUD_Model):
     _ a simple list if it inherits from 'Generic_CRUD_Model'
     """
 
-    def __init__(self, notify_function : Callable =None):
+    def __init__(self, notify_function : callable =None):
         super().__init__(Task, notify_function)
 
     def create(self, title: str, priority: int):

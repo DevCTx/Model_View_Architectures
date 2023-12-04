@@ -56,7 +56,7 @@ The ***Generic_CRUD_Model*** will then create a **list** of data based on the **
 ````python
 class Generic_CRUD_Model:
 
-    def __init__(self, object_type: type, on_modified: Callable = None, file_extension: str = None):
+    def __init__(self, object_type: type, on_modified: callable = None, file_extension: str = None):
 
         # check if object_type is a class
         if not inspect.isclass(object_type):

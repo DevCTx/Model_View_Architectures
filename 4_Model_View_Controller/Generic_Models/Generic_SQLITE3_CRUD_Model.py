@@ -2,7 +2,6 @@
     Create a Generic CRUD Model for SQLITE3 File
 """
 import sqlite3
-from typing import Callable
 from datetime import datetime   # used in _type_to_sqlite3
 
 if __name__ == "__main__":  # To test the sample at the end of the file
@@ -24,7 +23,7 @@ class Generic_SQLITE3_CRUD_Model(Generic_CRUD_Model):
     object_list of 'object_type' to/from the database
     """
 
-    def __init__(self, object_type: type, notify_function : Callable = None): #, drop_table_if_exists: bool = False):
+    def __init__(self, object_type: type, notify_function : callable = None): #, drop_table_if_exists: bool = False):
         self.db = None
         self.cursor = None
         #self.drop_table_if_exists = drop_table_if_exists
@@ -34,9 +33,15 @@ class Generic_SQLITE3_CRUD_Model(Generic_CRUD_Model):
         # The system will notify the changes on the .sqlite3 file but not on the specific 'object_type' table.
         # For another use of this sqlite3 database, a better notification mechanism might be needed to be more accurate.
 
-    def _init_file_objects(self):
+    def open_db(self):
         self.db = sqlite3.connect(self.filename)
         self.cursor = self.db.cursor()
+
+    def close_db(self):
+        self.db.close()
+
+
+    def _init_file_objects(self):
         sqlite3_mapping = {
             'int': 'INTEGER NOT NULL',
             'bool': 'INTEGER NOT NULL',  # No bool type, (0 for False, 1 for True)
@@ -53,15 +58,22 @@ class Generic_SQLITE3_CRUD_Model(Generic_CRUD_Model):
         #     self.cursor.execute(statement)
 
         statement = f"CREATE TABLE IF NOT EXISTS {self.object_type.__name__} ({', '.join(field_list)})"
+
+        self.open_db()
         self.cursor.execute(statement)
         self.db.commit()
+        self.close_db()
 
         self._get_file_objects_with_last_timestamp()
 
     def _get_file_objects(self):
         """ Get the object_list of 'object_type' from the sqlite3 database """
         statement = f"SELECT * FROM {self.object_type.__name__}"
+
+        self.open_db()
         sqlite3_values_list = [sqlite3_item for sqlite3_item in self.cursor.execute(statement)]
+        self.close_db()
+
         # Convert the values from SQLITE3 to the type of 'object_type'
         self._convert_to_object_list(sqlite3_values_list)
 
@@ -91,8 +103,11 @@ class Generic_SQLITE3_CRUD_Model(Generic_CRUD_Model):
         statement = f"INSERT INTO {self.object_type.__name__} " \
                     f"({', '.join(object_item.__dict__.keys())}) " \
                     f"VALUES ({', '.join(compatible_object_item_values)})"
+
+        self.open_db()
         self.cursor.execute(statement)
         self.db.commit()
+        self.close_db()
 
         self._get_file_objects_with_last_timestamp()
 
@@ -115,8 +130,11 @@ class Generic_SQLITE3_CRUD_Model(Generic_CRUD_Model):
         statement = f"UPDATE {self.object_type.__name__} SET " \
                     f"({', '.join(object_new.__dict__.keys())})=({', '.join(compatible_object_new_values)}) " \
                     f"WHERE ({', '.join(object_old.__dict__.keys())})=({', '.join(compatible_object_old_values)})"
+
+        self.open_db()
         self.cursor.execute(statement)
         self.db.commit()
+        self.close_db()
 
         self._get_file_objects_with_last_timestamp()
 
@@ -133,8 +151,11 @@ class Generic_SQLITE3_CRUD_Model(Generic_CRUD_Model):
 
         statement = f"DELETE FROM {self.object_type.__name__} " \
                     f"WHERE ({', '.join(object_item.__dict__.keys())})=({', '.join(compatible_object_item_values)})"
+
+        self.open_db()
         self.cursor.execute(statement)
         self.db.commit()
+        self.close_db()
 
         self._get_file_objects_with_last_timestamp()
 
@@ -173,7 +194,7 @@ if __name__ == "__main__":
 
     ### Added to share the Model between Views
     class Model_User:
-        def __init__(self, model, notify_function: Callable):
+        def __init__(self, model, notify_function: callable):
             self.model = model
             self.notify_function = notify_function
 

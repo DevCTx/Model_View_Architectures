@@ -44,7 +44,7 @@ class Main_Controller:
 
 class Button_List_Controller(Main_Controller):
 
-    def __init__(self, task_model, observer : callable):
+    def __init__(self, task_model, observer: callable):
         super().__init__()
         self.tasks = task_model
         self.observer = observer
@@ -69,7 +69,7 @@ class Button_List_Controller(Main_Controller):
 
 class Two_Columns_Controller(Main_Controller):
 
-    def __init__(self, task_model, observer : callable):
+    def __init__(self, task_model, observer: callable):
         super().__init__()
         self.tasks = task_model
         self.observer = observer
@@ -94,7 +94,7 @@ class Two_Columns_Controller(Main_Controller):
 
 class Two_Rows_Controller(Main_Controller):
 
-    def __init__(self, task_model, observer : callable):
+    def __init__(self, task_model, observer: callable):
         super().__init__()
         self.tasks = task_model
         self.observer = observer
@@ -122,7 +122,7 @@ class Two_Rows_Controller(Main_Controller):
 
 class Bar_Chart_Controller(Main_Controller):
 
-    def __init__(self, task_model, observer : callable):
+    def __init__(self, task_model, observer: callable):
         super().__init__()
         self.tasks = task_model
         self.observer = observer

@@ -1,13 +1,25 @@
 from collections import defaultdict
 
-from Task_Controllers import Button_List_Controller, Two_Rows_Controller, Two_Columns_Controller, Bar_Chart_Controller
-
 from Observer_patterns.Observables import ObservableProperty, ObservableList
 
-class Button_List_ViewModel:
+from Task_ViewModels_API import Bar_Chart_ViewModel_API
+from Task_ViewModels_API import Two_Rows_ViewModel_API
+from Task_ViewModels_API import Two_Columns_ViewModel_API
+from Task_ViewModels_API import Button_List_ViewModel_API
+
+from Task_Controllers import Button_List_Controller
+from Task_Controllers import Two_Rows_Controller
+from Task_Controllers import Two_Columns_Controller
+from Task_Controllers import Bar_Chart_Controller
+
+
+class Button_List_ViewModel(Button_List_ViewModel_API):
+
     def __init__(self, task_model):
+        super().__init__()
+
         # delegate all interactions with the model to the Controller
-        self.controller = Button_List_Controller(task_model, self)
+        self.controller = Button_List_Controller(task_model, self.notify)
         self.task_list = []
 
         # common
@@ -43,7 +55,7 @@ class Button_List_ViewModel:
         self.button_right_args = None
 
         # reload
-        self.notify_reload = False
+        self.refreshing = False
 
     def update_and_format_task_list(self):
         self.task_list = self.controller.get_task_list()
@@ -98,19 +110,23 @@ class Button_List_ViewModel:
             selected_task_tuple = self.task_list[item_id]
             self.controller.delete_button(selected_task_tuple)
 
+    def refresh(self):
+        self.refreshing = True
+        self.observable_list.update(self.update_and_format_task_list())
+        self.refreshing = False
+
     def notify(self, *args, **kwargs):
         """ Called when the file/db is modified by another process and when the data is modified by another view """
-        if self.notify_reload is False:
-            self.notify_reload = True
-            self.observable_list.update(self.update_and_format_task_list())
-            self.notify_reload = False
+        if self.refreshing is False:
+            self.refresh()
 
-
-class Two_Columns_ViewModel:
+class Two_Columns_ViewModel(Two_Columns_ViewModel_API):
 
     def __init__(self, task_model):
+        super().__init__()
+
         # delegate all interactions with the model to the Controller
-        self.controller = Two_Columns_Controller(task_model, self)
+        self.controller = Two_Columns_Controller(task_model, self.notify)
         self.task_list = []
 
         # common
@@ -119,49 +135,50 @@ class Two_Columns_ViewModel:
 
         # new item frame
         self.label_init = "Enter a new task here"
-        self.label_var = ObservableProperty(self.label_init)
         self.value_init = "5"
+        self.label_var = ObservableProperty(self.label_init)
         self.value_var = ObservableProperty(self.value_init)
         self.value_options = ["1", "2", "3", "4", "5"]
         self.button_left_text = "Add"  # "Add" / "Update"
         self.button_left_command = self.handle_add_update_button
-        self.button_left_args = None
         self.button_left_state = "normal"   # "normal" / "disabled"
         self.button_right_text = "Delete"
         self.button_right_command = self.handle_delete_button
-        self.button_right_args = None
         self.button_right_state = "disabled"   # "normal" / "disabled"
 
         # treeview frame
-        self.observable_list = ObservableList(self.update_and_format_task_list())
-        self.selected_item = None
-        self.selected_index = None
+        self.label_value_tuple_list = ObservableList(self.update_and_format_task_list())
+        self.selected_item_dict = defaultdict(tuple)
 
         # reload
-        self.notify_reload = False
+        self.refreshing = False
 
     def update_and_format_task_list(self):
         self.task_list = self.controller.get_task_list()
-        return [(str(task[0]),str(task[1])) for task in self.task_list]   # tree 2 colonnes
+        return [(str(task[0]), str(task[1])) for task in self.task_list]   # tree 2 colonnes
 
-    def clear_input_fields(self):
-        self.selected_item = None
-        self.selected_index = None
-        self.label_var.set(self.label_init)
-        self.value_var.set(self.value_init)
-        self.button_left_text= "Add"
-        self.button_right_state = "disabled"
+    def on_selected_items(self):
+        if len(self.selected_item_dict) == 1:
+            self.on_unique_selection()
+        else:  # refuses multi selections or unselects the unique selection
+            self.clear_input_fields()
 
-    def on_selection(self, selected_item, selected_index ):
-        self.selected_item = selected_item
-        self.selected_index = selected_index
-        self.label_var.set(selected_item[0])
-        self.value_var.set(selected_item[1])
+    def on_unique_selection(self):  # selected_item, selected_index ):
+        item_tuple = list(self.selected_item_dict.values())[0]
+        self.label_var.set(item_tuple[0])
+        self.value_var.set(item_tuple[1])
         self.button_left_text = "Update"
         self.button_right_state = "normal"
 
+    def clear_input_fields(self):
+        self.selected_item_dict.clear()
+        self.label_var.set(self.label_init)
+        self.value_var.set(self.value_init)
+        self.button_left_text = "Add"
+        self.button_right_state = "disabled"
+
     def handle_add_update_button(self):
-        if self.selected_item:
+        if len(self.selected_item_dict):
             self.handle_update_button()
         else:
             self.handle_add_button()
@@ -172,25 +189,36 @@ class Two_Columns_ViewModel:
 
     def handle_update_button(self):
         if len(self.label_var.get()) > 0:
-            self.controller.update_button(self.task_list[self.selected_index], self.label_var.get(), self.value_var.get())
+            item_index = list(self.selected_item_dict.keys())[0]
+            self.controller.update_button(
+                self.task_list[item_index],
+                self.label_var.get(),
+                self.value_var.get()
+            )
 
     def handle_delete_button(self):
-        self.controller.delete_button(self.task_list[self.selected_index])
+        item_index = list(self.selected_item_dict.keys())[0]
+        self.controller.delete_button(self.task_list[item_index])
+
+    def refresh(self):
+        self.refreshing = True
+        self.label_value_tuple_list.update(self.update_and_format_task_list())
+        self.clear_input_fields()
+        self.refreshing = False
 
     def notify(self, *args, **kwargs):
         """ Called when the file/db is modified by another process and when the data is modified by another view """
-        if self.notify_reload is False:
-            self.notify_reload = True
-            self.observable_list.update(self.update_and_format_task_list())
-            self.clear_input_fields()
-            self.notify_reload = False
+        if self.refreshing is False:
+            self.refresh()
 
 
-class Two_Rows_ViewModel:
+class Two_Rows_ViewModel(Two_Rows_ViewModel_API):
 
     def __init__(self, task_model):
+        super().__init__()
+
         # delegate all interactions with the model to the Controller
-        self.controller = Two_Rows_Controller(task_model, self)
+        self.controller = Two_Rows_Controller(task_model, self.notify)
         self.task_list = []
 
         # New Item frame
@@ -211,7 +239,7 @@ class Two_Rows_ViewModel:
         self.reset_var()
 
         # reload
-        self.notify_reload = False
+        self.refreshing = False
 
     def update_task_list(self):
         self.task_list = self.controller.get_task_list()
@@ -233,55 +261,63 @@ class Two_Rows_ViewModel:
             self.controller.add_button(new_label, new_value)
         self.reset_var()
 
-    def update_delete_label(self, new_label_on_col, item_id):
+    def on_label_return(self, new_label_on_col, item_id):
         if 0 <= item_id < len(self.task_list):
             selected_task_tuple = self.task_list[item_id]
             same_value = selected_task_tuple[1]
-            if len(new_label_on_col) > 0:
+            if len(new_label_on_col) > 0:   # Update
                 self.controller.update_label(selected_task_tuple, new_label_on_col, same_value)
-            else:
+            else:   # Delete
                 self.controller.delete_label(selected_task_tuple)
 
-    def update_value(self, new_value_on_col, item_id):
+    def on_modified_value(self, new_value_on_col, item_id):
         if 0 <= item_id < len(self.task_list):
             selected_task_tuple = self.task_list[item_id]
             same_label = selected_task_tuple[0]
             self.controller.update_priority(selected_task_tuple, same_label, new_value_on_col)
 
+    def refresh(self):
+        self.refreshing = True
+        self.update_task_list()
+        self.label_list.update(self.format_label_list())
+        self.value_list.update(self.format_value_list())
+        self.refreshing = False
+
     def notify(self, *args, **kwargs):
         """ Called when the file/db is modified by another process and when the data is modified by another view """
-        if self.notify_reload is False:
-            self.notify_reload = True
-            self.update_task_list()
-            self.label_list.update(self.format_label_list())
-            self.value_list.update(self.format_value_list())
-            self.notify_reload = False
+        if self.refreshing is False:
+            self.refresh()
 
 
-class Bar_Chart_ViewModel:
+class Bar_Chart_ViewModel(Bar_Chart_ViewModel_API):
 
     def __init__(self, task_model):
+        super().__init__()
+
         # delegate all interactions with the model to the Controller
-        self.controller = Bar_Chart_Controller(task_model, self)
+        self.controller = Bar_Chart_Controller(task_model, self.notify)
         self.task_list = []
 
         # main frame
-        self.observable_list = ObservableList(self.update_and_format_task_list())
+        self.label_value_tuple_list = ObservableList(self.update_and_format_task_list())
         self.value_name = "Priority"
         self.value_options = [1, 2, 3, 4, 5]
         self.reversed_options = True    # like Priority
-        self.message_no_item = "No task to display"
+        self.no_item_message = "No task to display"
 
         # reload
-        self.notify_reload = False
+        self.refreshing = False
 
     def update_and_format_task_list(self):
         self.task_list = self.controller.get_task_list()
         return [(str(task[0]), str(task[1])) for task in self.task_list]  # (label, value) as string
 
+    def refresh(self):
+        self.refreshing = True
+        self.label_value_tuple_list.update(self.update_and_format_task_list())
+        self.refreshing = False
+
     def notify(self, *args, **kwargs):
         """ Called when the file/db is modified by another process and when the data is modified by another view """
-        if self.notify_reload is False:
-            self.notify_reload = True
-            self.observable_list.update(self.update_and_format_task_list())
-            self.notify_reload = False
+        if self.refreshing is False:
+            self.refresh()

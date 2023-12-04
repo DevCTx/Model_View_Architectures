@@ -81,7 +81,7 @@ and the ***\_\_init\_\_*** method must call the ***\_\_init\_\_*** of the model 
 ```python
 class Task_CRUD_Model(Generic_CRUD_Model):
     
-    def __init__(self, notify_function : Callable =None):
+    def __init__(self, notify_function : callable =None):
         super().__init__(Task, notify_function)
 ```
 ... and that's it ! **The model is created and modifiable !** Pretty cool, no ?!
@@ -131,7 +131,7 @@ class Task_CRUD_Model(Generic_CRUD_Model):
 
 ## File Observer
 
-You probably noticed that another argument is passed to the ***\_\_init\_\_*** method, a **Callable** function named 
+You probably noticed that another argument is passed to the ***\_\_init\_\_*** method, a **callable** function named 
 ***notify_function***.
 
 This is a part of the **File Observer** pattern which allows for the applications and programs to be **notified** when 
@@ -155,7 +155,7 @@ from Observer_patterns.FileObserverHandler import FileObserverHandler
 
 class Generic_CRUD_Model:
 
-    def __init__(self, object_type: type, on_modified: Callable = None, file_extension: str = None):
+    def __init__(self, object_type: type, on_modified: callable = None, file_extension: str = None):
         ...
         # If the use of a file is requested
         if file_extension is not None:
@@ -231,18 +231,11 @@ class Task_Manager_1:
     ...
     def notify_on_file_modified(self, *args, **kwargs):
         """ Called when the file/db is modified by another process """
-            # The 'after' method from Tkinter library is employed to initiate the refresh within the main thread.
-            # This setup is particularly requested when the system called this method to notify the application
-            # about an external modification, especially when dealing with SQLITE3 files.
-            self.window.after(0, self.refresh)
+            self.refresh()
 ```
 
-A ***notify_on_file_modified*** method is used as callback to handle the notifications is received from the system when
-a modification is operated in the model file defined by the ***Task_CRUD_Model***.
-
-This one calls the respective ***refresh*** method of the ***Task Manager*** and uses the ***after*** method, 
-provided by the ***tkinter*** library to schedule its execution from at some point later in the ***main*** thread. 
-This is particularly required for the model using ***SQLITE3***.
+A ***notify_on_file_modified***  method is used as a callback to handle notifications received from the system when 
+a modification is made to the model file defined by ***Task_CRUD_Model***.
 
 ---
 

@@ -85,11 +85,7 @@ class Task_Manager_1:
     ### Added to get the notifications when the file/db is modified
     def notify_on_file_modified(self, *args, **kwargs):
         """ Called when the file/db is modified by another process """
-        # The 'after' method from Tkinter library is employed to initiate the refresh within the main thread.
-        # This setup is particularly requested when the system called this method to notify the application
-        # about an external modification, especially when dealing with SQLITE3 files.
-        self.window.after(0, self.refresh)
-    ###
+        self.refresh()
 
     def on_treeview_select(self, event):
         # Get the selected item line

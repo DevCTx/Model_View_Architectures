@@ -368,7 +368,7 @@ import threading
 ...
 class Generic_CRUD_Model(Observable):
     ...
-    def __init__(self, object_type: type, on_modified: Callable = None, file_extension: str = None):
+    def __init__(self, object_type: type, on_modified: callable = None, file_extension: str = None):
         ...
         self.observer_thread = None
         ...
@@ -393,7 +393,7 @@ class Generic_CRUD_Model(Observable):
 if __name__ == "__main__":
     ...
     class Model_User:
-        def __init__(self, model, notify_function: Callable):
+        def __init__(self, model, notify_function: callable):
             self.model = model
             self.notify_function = notify_function
 

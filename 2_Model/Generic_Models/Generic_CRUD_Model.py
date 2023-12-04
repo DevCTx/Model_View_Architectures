@@ -6,7 +6,7 @@ import os
 import sys
 from datetime import datetime
 from time import sleep
-from typing import get_type_hints, Callable
+from typing import get_type_hints
 
 from watchdog.observers import Observer
 
@@ -22,7 +22,7 @@ class Generic_CRUD_Model:
     The arguments of the __init__ method in the 'object_type' class must match the names of its attributes
     """
 
-    def __init__(self, object_type: type, on_modified: Callable = None, file_extension: str = None):
+    def __init__(self, object_type: type, on_modified: callable = None, file_extension: str = None):
 
         # check if object_type is a class
         if not inspect.isclass(object_type):

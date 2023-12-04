@@ -7,7 +7,7 @@ import sys
 import threading
 from datetime import datetime
 from time import sleep
-from typing import get_type_hints, Callable
+from typing import get_type_hints
 
 from watchdog.observers import Observer
 
@@ -35,7 +35,7 @@ class Generic_CRUD_Model(Observable):           ### (Observable) Added to share 
     The arguments of the __init__ method in the 'object_type' class must match the names of its attributes
     """
 
-    def __init__(self, object_type: type, on_modified: Callable = None, file_extension: str = None):
+    def __init__(self, object_type: type, on_modified: callable = None, file_extension: str = None):
 
         # check if object_type is a class
         if not inspect.isclass(object_type):
@@ -248,7 +248,7 @@ if __name__ == "__main__":
 
     ### Added to share the Model between Views
     class Model_User:
-        def __init__(self, model, notify_function: Callable):
+        def __init__(self, model, notify_function: callable):
             self.model = model
             self.notify_function = notify_function
 

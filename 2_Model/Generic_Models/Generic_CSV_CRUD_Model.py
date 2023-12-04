@@ -2,7 +2,6 @@
     Create a Generic CRUD Model for CSV File
 """
 import csv
-from typing import Callable
 
 if __name__ == "__main__":  # To test the sample at the end of the file
     from Generic_CRUD_Model import Generic_CRUD_Model
@@ -23,7 +22,7 @@ class Generic_CSV_CRUD_Model(Generic_CRUD_Model):
     object_list of 'object_type' to/from the file
     """
 
-    def __init__(self, object_type: type, notify_function : Callable = None):
+    def __init__(self, object_type: type, notify_function : callable = None):
         # init the object_type, the field_names, the field_types, an object_list, the filename, call init_file_objects
         super().__init__(object_type, notify_function, "CSV")
 

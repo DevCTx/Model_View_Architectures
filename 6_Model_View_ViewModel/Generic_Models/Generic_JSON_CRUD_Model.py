@@ -2,7 +2,6 @@
     Create a Generic CRUD Model for Json File
 """
 import json
-from typing import Callable
 from datetime import datetime   # used in Encoder
 
 if __name__ == "__main__":  # To test the sample at the end of the file
@@ -63,7 +62,7 @@ class Generic_JSON_CRUD_Model(Generic_CRUD_Model):
     object_list of 'object_type' to/from the file
     """
 
-    def __init__(self, object_type: type, notify_function : Callable = None):
+    def __init__(self, object_type: type, notify_function : callable = None):
         # init the object_type, the field_names, the field_types, an object_list, the filename, call init_file_objects
         super().__init__(object_type, notify_function, "JSON")
 
@@ -126,7 +125,7 @@ if __name__ == "__main__":
 
     ### Added to share the Model between Views
     class Model_User:
-        def __init__(self, model, notify_function: Callable):
+        def __init__(self, model, notify_function: callable):
             self.model = model
             self.notify_function = notify_function
 

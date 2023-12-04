@@ -1,15 +1,19 @@
+import atexit
 import textwrap
 from collections import defaultdict
-from datetime import datetime
+import io
 
 import tkinter as tk
 
-from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
-import matplotlib.pyplot as plt
+from PIL import Image, ImageTk
+import matplotlib
+
+# Avoid UserWarning: Starting a Matplotlib GUI outside of the main thread will likely fail.
+matplotlib.use('agg')
+from matplotlib import pyplot as plt
 
 from Binding_patterns.TkinterBindings import BoundTk_StringVar, BoundTk_ListVar, BoundTk_TreeView
 from Binding_patterns.SimpleBindings import Bound_List
-from Task_ViewModels import Button_List_ViewModel, Two_Columns_ViewModel, Two_Rows_ViewModel, Bar_Chart_ViewModel
 
 
 class Button_List_View(tk.LabelFrame):
@@ -18,33 +22,49 @@ class Button_List_View(tk.LabelFrame):
         super().__init__(root_window, text=self.__class__.__name__, labelanchor=tk.NW, **kwargs)
 
         # delegate all interactions to the view_model
-        self.view_model = viewmodel
+        self.view_model: Button_List_ViewModel_API = viewmodel
 
         # Variable for the pop-up windows
         self.label_var = BoundTk_StringVar("label_var", self.view_model.label_var, self)
         self.value_var = BoundTk_StringVar("value_var", self.view_model.value_var, self)
         self.popup_window = None
 
-        # one button frame
-        self.create_one_button_frame()
-
         # main frame
         self.canvas = None
         self.scrollable_table = None
-        self.create_the_main_frame()    # create the frame, the canvas and the scrollable_table
-        self.bound_tk_list = BoundTk_ListVar(
+        self.label_value_tk_list = BoundTk_ListVar(
             name="bound_tk_list",
             list_type=BoundTk_StringVar,
-            observable_list=self.view_model.observable_list,
+            observable_list=self.view_model.label_value_list,
             master=self.scrollable_table,
-            on_list_modif=self.view_update_canvas
+            on_list_modif=self.update_main_frame
         )
-        self.view_update_canvas()   # engaging a first loading of the data
+        atexit.register(self.on_closing)
+        self.run()
 
     def on_closing(self):
         self.label_var.unbind_tk_var()
         self.value_var.unbind_tk_var()
-        self.bound_tk_list.unbind_tk_list()
+        self.label_value_tk_list.unbind_tk_list()
+
+    def run(self):
+        ''' All properties and data should be initialized before to launch this method '''
+        # one button frame
+        self.create_one_button_frame()
+        # main frame
+        self.create_the_main_frame()  # create the frame, the canvas and the scrollable_table
+        self.update_main_frame()  # engaging a first loading of the data
+
+    def create_one_button_frame(self):
+        frame = tk.Frame(self, background="white")
+        frame.pack(side=tk.BOTTOM, fill=tk.X)
+        one_button = tk.Button(
+            master=frame,
+            padx=4,
+            text=self.view_model.one_button_text,
+            command=lambda: (self.view_model.one_button_command(), self.display_popup())
+        )
+        one_button.pack(padx=5, pady=8)
 
     def create_the_main_frame(self):
         # create a Frame containing the table and the scrolling bar
@@ -84,7 +104,7 @@ class Button_List_View(tk.LabelFrame):
         elif event.delta > 0:
             self.canvas.yview_scroll(-1, tk.UNITS)
 
-    def view_update_canvas(self):
+    def update_main_frame(self):
         # Clear the potential pop_up if any
         if self.popup_window is not None:
             self.popup_window.destroy()
@@ -93,24 +113,24 @@ class Button_List_View(tk.LabelFrame):
         for widget in self.scrollable_table.winfo_children():
             widget.destroy()
 
-        for row, tk_item in enumerate(self.bound_tk_list):
+        for row, tk_item in enumerate(self.label_value_tk_list):
             task_lbl = tk.Label(self.scrollable_table, textvariable=tk_item, anchor=tk.W, background="white")
 
             button1 = tk.Button(
                 master=self.scrollable_table,
                 text=self.view_model.list_button1_text,
-                command=lambda item=row: (self.view_model.list_button1_command(item), self.view_display_popup())
+                command=lambda item=row: (self.view_model.list_button1_command(item), self.display_popup())
             )
 
             button2 = tk.Button(
                 master=self.scrollable_table,
                 text=self.view_model.list_button2_text,
-                command=lambda item=row: (self.view_model.list_button2_command(item), self.view_display_popup())
+                command=lambda item=row: (self.view_model.list_button2_command(item), self.display_popup())
             )
 
             task_lbl.grid(row=row, column=0, sticky=tk.EW)
             button1.grid(row=row, column=1)
-            button2.grid(row=row, column=2, padx=(0, 20))     # pad x for scrollbar width
+            button2.grid(row=row, column=2, padx=(0, 20))  # pad x for scrollbar width
 
             # Configure grid column weights to make the task_lbl expand with scrollable_table width
             self.scrollable_table.grid_columnconfigure(0, weight=1)
@@ -126,19 +146,8 @@ class Button_List_View(tk.LabelFrame):
         self.canvas.configure(scrollregion=self.canvas.bbox(tk.ALL))
         self.set_canvas_height_width(None)
 
-    def create_one_button_frame(self):
-        frame = tk.Frame(self, background="white")
-        frame.pack(side=tk.BOTTOM, fill=tk.X)
-        one_button = tk.Button(
-            master=frame,
-            width=10,
-            text=self.view_model.one_button_text,
-            command=lambda: (self.view_model.one_button_command(), self.view_display_popup())
-        )
-        one_button.pack(padx=5, pady=8)
-
-    def view_display_popup(self):
-        self.popup_window = tk.Toplevel(self.scrollable_table)
+    def display_popup(self):
+        self.popup_window = tk.Toplevel(self)
         self.popup_window.title(f"{self.view_model.action_name} Task")
 
         # Label
@@ -187,44 +196,89 @@ class Two_Columns_View(tk.LabelFrame):
         super().__init__(root_window, text=self.__class__.__name__, labelanchor=tk.NW, **kwargs)
 
         # delegate all interactions to the view_model
-        self.view_model = viewmodel
-
-        # Treeview Frame
-        self.bound_tk_tree = None
-        self.create_the_main_task_frame()   # engaging a first loading of the data
+        self.view_model: Two_Columns_ViewModel_API = viewmodel
 
         # New Item Frame
         self.label_var = BoundTk_StringVar("label_var", self.view_model.label_var, self)
         self.value_var = BoundTk_StringVar("value_var", self.view_model.value_var, self)
-        self.create_the_new_item_frame()
+
+        # Treeview Frame
+        self.bound_tk_tree = None
+        self.button_left = None
+        self.button_right = None
+
+        atexit.register(self.on_closing)
+        self.run()
 
     def on_closing(self):
         self.label_var.unbind_tk_var()
         self.value_var.unbind_tk_var()
         self.bound_tk_tree.unbind_tk_treeview()
 
+    def run(self):
+        ''' All properties and data should be initialized before to launch this method '''
+        # Treeview Frame
+        self.create_the_main_frame()  # engaging a first loading of the data
+
+        # New Item Frame
+        self.create_the_new_item_frame()
+
+    def create_the_main_frame(self):
+        # Create a main frame for the labels and the scrolling bar
+        main_frame = tk.Frame(self)
+        main_frame.pack(side=tk.TOP, padx=5, pady=5, fill=tk.BOTH, expand=True)
+
+        self.bound_tk_tree = BoundTk_TreeView(
+            name="bound_tk_tree",
+            observable_list=self.view_model.label_value_tuple_list,
+            master=main_frame,
+            columns=("Column 1", "Column 2"),
+            show="headings"
+        )
+        # Define the header of the Columns
+        self.bound_tk_tree.heading("Column 1", text=self.view_model.label_name)
+        self.bound_tk_tree.heading("Column 2", text=self.view_model.value_name)
+        self.bound_tk_tree.grid(row=0, column=0, sticky=tk.NSEW)
+
+        # Define a scrollbar attached to the main_frame based on the TreeView height
+        y_scrollbar = tk.Scrollbar(main_frame, orient=tk.VERTICAL, command=self.bound_tk_tree.yview)
+        y_scrollbar.grid(row=0, column=1, sticky=tk.NS)
+
+        # Config the cursor of the scrollbar to be sized/placed according to the height/position of the Treeview
+        self.bound_tk_tree.configure(yscrollcommand=y_scrollbar.set)
+
+        # Defines the weight of the columns in case of reduction
+        main_frame.grid_rowconfigure(0, weight=1)  # tree enlarges/reduces its  height
+        main_frame.grid_columnconfigure(0, weight=1)  # tree enlarges/reduces its width
+        main_frame.grid_columnconfigure(1, weight=0)  # y_scrollbar does not enlarge/reduce its width
+
+        # Bind mousewheel events to capture touchpad gestures
+        self.bound_tk_tree.bind("<MouseWheel>", self.on_mousewheel)
+
+        # Bind a function to the select event
+        self.bound_tk_tree.bind("<<TreeviewSelect>>", self.on_treeview_selection)
+
     def create_the_new_item_frame(self):
-        new_task_frame = tk.Frame(self, bg="white")
-        new_task_frame.pack(side=tk.BOTTOM, padx=5, pady=(0, 5), fill=tk.X)
+        new_item_frame = tk.Frame(self, bg="white")
+        new_item_frame.pack(side=tk.BOTTOM, padx=5, pady=(0, 5), fill=tk.X)
 
         # Label
-        label_name = tk.Label(new_task_frame, text=self.view_model.label_name)
-        label_entry = tk.Entry(new_task_frame, textvariable=self.label_var)
+        label_name = tk.Label(new_item_frame, text=self.view_model.label_name)
+        label_entry = tk.Entry(new_item_frame, textvariable=self.label_var)
 
         # Value
-        value_name = tk.Label(new_task_frame, text=self.view_model.value_name)
-        value_menu = tk.OptionMenu(new_task_frame, self.value_var, *self.view_model.value_options)
+        value_name = tk.Label(new_item_frame, text=self.view_model.value_name)
+        value_menu = tk.OptionMenu(new_item_frame, self.value_var, *self.view_model.value_options)
 
         self.button_left = tk.Button(
-            master=new_task_frame,
-            command=lambda: (self.view_model.button_left_command(), self.update_select_and_button_configs())
+            master=new_item_frame,
+            command=lambda: (self.view_model.button_left_command(), self.update_selection_and_buttons())
         )
 
         self.button_right = tk.Button(
-            master=new_task_frame,
-            command=lambda: (self.view_model.button_right_command(), self.update_select_and_button_configs())
+            master=new_item_frame,
+            command=lambda: (self.view_model.button_right_command(), self.update_selection_and_buttons())
         )
-        self.update_select_and_button_configs()
 
         # Grid the frame : Label_Name [Entry] Value_Name [Menu] [Button_left] [Button_right]
         label_name.grid(row=0, column=0, padx=5, pady=5)
@@ -234,53 +288,22 @@ class Two_Columns_View(tk.LabelFrame):
         self.button_left.grid(row=0, column=4, padx=5, pady=5)
         self.button_right.grid(row=0, column=5, padx=5, pady=5)
 
-        # Configure grid column weights to make the title_entry expand with the new_task_frame width
-        new_task_frame.grid_columnconfigure(1, weight=1)
+        # Configure grid column weights to make the title_entry expand with the new_item_frame width
+        new_item_frame.grid_columnconfigure(1, weight=1)
         label_entry.grid(sticky=tk.EW)
 
-    def update_select_and_button_configs(self):
+    def update_selection_and_buttons(self):
         self.button_left.config(
             text=self.view_model.button_left_text,
-            state=tk.DISABLED if self.view_model.button_left_state == "disabled" else tk.NORMAL,
+            state=self.view_model.button_left_state
         )
         self.button_right.config(
             text=self.view_model.button_right_text,
-            state=tk.DISABLED if self.view_model.button_right_state == "disabled" else tk.NORMAL
+            state=self.view_model.button_right_state
         )
-        if self.view_model.selected_item is None :
+        if len(self.view_model.selected_item_dict) == 0:
             for selected_item in self.bound_tk_tree.selection():
                 self.bound_tk_tree.selection_remove(selected_item)
-
-    def create_the_main_task_frame(self):
-        # Create a main frame for the labels and the scrolling bar
-        main_task_frame = tk.Frame(self)
-        main_task_frame.pack(side=tk.TOP, padx=5, pady=5, fill=tk.BOTH, expand=True)
-
-        self.bound_tk_tree = BoundTk_TreeView(
-            name="bound_tk_tree",
-            observable_list=self.view_model.observable_list,
-            master=main_task_frame,
-            columns=("Column 1", "Column 2"),
-            show="headings"
-        )
-        # Define the header of the Columns
-        self.bound_tk_tree.heading("Column 1", text=self.view_model.label_name)
-        self.bound_tk_tree.heading("Column 2", text=self.view_model.value_name)
-
-        self.bound_tk_tree.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
-
-        # Define a scrollbar attached to the main_task_frame based on the TreeView height
-        y_scrollbar = tk.Scrollbar(main_task_frame, orient=tk.VERTICAL, command=self.bound_tk_tree.yview)
-        y_scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
-
-        # Config the cursor of the scrollbar to be sized/placed according to the height/position of the Treeview
-        self.bound_tk_tree.configure(yscrollcommand=y_scrollbar.set)
-
-        # Bind mousewheel events to capture touchpad gestures
-        self.bound_tk_tree.bind("<MouseWheel>", self.on_mousewheel)
-
-        # Bind a function to the select event
-        self.bound_tk_tree.bind("<<TreeviewSelect>>", self.on_treeview_selection)
 
     def on_mousewheel(self, event):
         # Detect horizontal scroll gestures for touchpad and update the canvas's horizontal scrolling
@@ -289,21 +312,29 @@ class Two_Columns_View(tk.LabelFrame):
         elif event.delta > 0:
             self.bound_tk_tree.yview_scroll(-1, tk.UNITS)
 
+    # def on_treeview_selection(self, event):
+    #     # Get the selected item line
+    #     selected_items = self.bound_tk_tree.selection()  # tuple(item,...)
+    #
+    #     if len(selected_items) >= 1:
+    #         # Get the 'values' of the selected item
+    #         item = self.bound_tk_tree.item(selected_items[0], "tags")
+    #         index = self.bound_tk_tree.index(selected_items[0])
+    #
+    #         if len(selected_items) == 1 and item != self.view_model.selected_item:
+    #             # unique selection
+    #             self.view_model.on_unique_selection(item, index)
+    #         else: # remove the selections or unselect the unique selection
+    #             self.view_model.clear_input_fields()
+    #     self.update_selection_and_buttons()
+
     def on_treeview_selection(self, event):
+        self.view_model.selected_item_dict.clear()  # dict[index_item] = item_tuple
         # Get the selected item line
-        selected_items = self.bound_tk_tree.selection()  # tuple(item,...)
-
-        if len(selected_items) >= 1:
-            # Get the 'values' of the selected item
-            item = self.bound_tk_tree.item(selected_items[0], "tags")
-            index = self.bound_tk_tree.index(selected_items[0])
-
-            if len(selected_items) == 1 and item != self.view_model.selected_item:
-                # unique selection
-                self.view_model.on_selection(item, index)
-            else: # remove the selections or unselect the unique selection
-                self.view_model.clear_input_fields()
-        self.update_select_and_button_configs()
+        for item in self.bound_tk_tree.selection():  # tuple(item,...)
+            self.view_model.selected_item_dict[self.bound_tk_tree.index(item)] = self.bound_tk_tree.item(item, "tags")
+        self.view_model.on_selected_items()
+        self.update_selection_and_buttons()
 
 
 class Two_Rows_View(tk.LabelFrame):
@@ -312,34 +343,34 @@ class Two_Rows_View(tk.LabelFrame):
         super().__init__(root_window, text=self.__class__.__name__, labelanchor=tk.NW, **kwargs)
 
         # delegate all interactions to the view_model
-        self.view_model = viewmodel
+        self.view_model: Two_Rows_ViewModel_API = viewmodel
 
         # New Item Frame
-        self.label_var = BoundTk_StringVar("label_var", self.view_model.label_var, self)    #entry_var_new
-        self.value_var = BoundTk_StringVar("value_var", self.view_model.value_var, self)    #priority_var_new
-        self.create_the_new_item_frame()
+        self.label_var = BoundTk_StringVar("label_var", self.view_model.label_var, self)  # entry_var_new
+        self.value_var = BoundTk_StringVar("value_var", self.view_model.value_var, self)  # priority_var_new
 
+        # Main Frame
         self.canvas = None
         self.scrollable_table = None
-        self.create_the_main_frame()
+
         self.bound_tk_labels = BoundTk_ListVar(
             name="label_list",
             list_type=BoundTk_StringVar,
             observable_list=self.view_model.label_list,
             master=self.scrollable_table,
-            on_list_modif=self.view_update_canvas
+            on_list_modif=self.update_main_frame
         )
+
         self.bound_tk_values = BoundTk_ListVar(
             name="value_list",
             list_type=BoundTk_StringVar,
             observable_list=self.view_model.value_list,
             master=self.scrollable_table,
-            on_list_modif=self.view_update_canvas
+            on_list_modif=self.update_main_frame
         )
-        self.view_update_canvas()   # engaging a first loading of the data
 
-        # self.refresh()  # engaging a first loading of the data
-        # self.notify_refresh = False
+        atexit.register(self.on_closing)
+        self.run()
 
     def on_closing(self):
         self.label_var.unbind_tk_var()
@@ -347,19 +378,26 @@ class Two_Rows_View(tk.LabelFrame):
         self.bound_tk_labels.unbind_tk_list()
         self.bound_tk_values.unbind_tk_list()
 
+    def run(self):
+        # New Item Frame
+        self.create_the_new_item_frame()
+        # Main Frame
+        self.create_the_main_frame()
+        self.update_main_frame()  # engaging a first loading of the data
+
     def create_the_new_item_frame(self):
-        new_task_frame = tk.Frame(self, bg="white")
-        new_task_frame.pack(side=tk.BOTTOM, fill=tk.X)
+        new_item_frame = tk.Frame(self, bg="white")
+        new_item_frame.pack(side=tk.BOTTOM, fill=tk.X)
 
         # Label
-        label_entry = tk.Entry(new_task_frame, textvariable=self.label_var)
+        label_entry = tk.Entry(new_item_frame, textvariable=self.label_var)
 
         # Value
-        value_menu = tk.OptionMenu(new_task_frame, self.value_var, *self.view_model.value_options)
+        value_menu = tk.OptionMenu(new_item_frame, self.value_var, *self.view_model.value_options)
 
         # One Button
         one_button = tk.Button(
-            master=new_task_frame,
+            master=new_item_frame,
             text=self.view_model.button_text,
             command=self.view_model.button_command
         )
@@ -369,8 +407,8 @@ class Two_Rows_View(tk.LabelFrame):
         value_menu.grid(row=0, column=1, padx=5, pady=5)
         one_button.grid(row=0, column=2, padx=5, pady=5)
 
-        # Configure grid column weights to make the title_entry expand with new_task_frame width
-        new_task_frame.grid_columnconfigure(0, weight=1)
+        # Configure grid column weights to make the title_entry expand with new_item_frame width
+        new_item_frame.grid_columnconfigure(0, weight=1)
         label_entry.grid(sticky=tk.EW)
 
     def create_the_main_frame(self):
@@ -379,14 +417,14 @@ class Two_Rows_View(tk.LabelFrame):
         main_frame.pack(side=tk.BOTTOM, fill=tk.X)
 
         # Create a canvas to hold the table for scrolling
-        self.canvas = tk.Canvas(self, borderwidth=0, highlightthickness=0)      # peut être main_task_frame
+        self.canvas = tk.Canvas(self, borderwidth=0, highlightthickness=0)  # peut être main_item_frame
         self.canvas.pack(fill=tk.BOTH, expand=True)
 
         # # Define a scrollable table
         self.scrollable_table = tk.Frame(self.canvas, borderwidth=1, relief=tk.SOLID)
         self.canvas.create_window((0, 0), window=self.scrollable_table, anchor=tk.NW)
 
-        # Create a horizontal scrollbar in the tasks_frame and link it to the canvas for the scrollable table
+        # Create a horizontal scrollbar in the items_frame and link it to the canvas for the scrollable table
         x_scrollbar = tk.Scrollbar(main_frame, orient=tk.HORIZONTAL, command=self.canvas.xview)
         x_scrollbar.pack(side=tk.BOTTOM, fill=tk.X)
 
@@ -409,7 +447,7 @@ class Two_Rows_View(tk.LabelFrame):
         elif event.delta > 0:
             self.canvas.xview_scroll(-1, tk.UNITS)
 
-    def view_update_canvas(self):
+    def update_main_frame(self):
         # Clear the previous widgets inside the scrollable_table if any
         for widget in self.scrollable_table.winfo_children():
             widget.destroy()
@@ -430,17 +468,18 @@ class Two_Rows_View(tk.LabelFrame):
             # The width of the entry automatically adjust with the size of the variable (when typing)
             label_entry.bind(
                 sequence="<KeyRelease>",
-                func=lambda event, ent=label_entry, column=col: self.adjust_entry_width(ent, column)
+                func=lambda event, ent=label_entry, label=self.bound_tk_labels[col].get():
+                self.adjust_entry_width(ent, label)
             )
 
-            # Initialize <Return> keypad or <FocusOut> to validate the task_entry and update it to the model
+            # Initialize <Return> keypad to validate the item_entry and update it to the model
             label_entry.bind(
                 sequence="<Return>",
-                func=lambda event, var=self.bound_tk_labels[col], column=col:
-                    self.view_model.update_delete_label(var.get(), column)
+                func=lambda event, var=self.bound_tk_labels[col], index=col:
+                self.view_model.on_label_return(var.get(), index)
             )
 
-            if len(self.bound_tk_values) > col :
+            if len(self.bound_tk_values) > col:
                 # Set an Option Menu to see/modify the priority
                 value_menu = tk.OptionMenu(
                     self.scrollable_table,
@@ -452,24 +491,23 @@ class Two_Rows_View(tk.LabelFrame):
                 # Bind an event to the StringVar to trigger when the option is selected
                 self.bound_tk_values[col].trace_add(
                     mode="write",
-                    callback=lambda *args, var=self.bound_tk_values[col], column=col:
-                        self.view_model.update_value(var.get(), column)
+                    callback=lambda *args, var=self.bound_tk_values[col], index=col:
+                    self.view_model.on_modified_value(var.get(), index)
                 )
-                # _update_property() is called after update_value() so the property returns wrong values in this last
-                # therefore the right value is directly passed as argument to the update_value() method
 
             self.update_scroll_region()
+
+    def adjust_entry_width(self, entry, label):
+        # Adapt the length of the entry while typing
+        new_entry_width = len(label) + 2
+        entry.configure(width=new_entry_width)
+        self.update_scroll_region()
 
     def update_scroll_region(self):
         # Update canvas scrolling region
         self.scrollable_table.update_idletasks()
         self.canvas.config(scrollregion=self.canvas.bbox(tk.ALL))
         self.set_canvas_height(None)
-
-    def adjust_entry_width(self, entry, column):
-        # Adapt the length of the entry while typing
-        entry.configure(width=len(self.bound_tk_labels[column].get()) + 2)
-        self.update_scroll_region()
 
 
 class Bar_Chart_View(tk.LabelFrame):
@@ -478,219 +516,297 @@ class Bar_Chart_View(tk.LabelFrame):
         super().__init__(root_window, text=self.__class__.__name__, labelanchor=tk.NW, **kwargs)
 
         # delegate all interactions to the view_model
-        self.view_model = viewmodel
-
-        # Create a graph in a Canvas with Matplotlib
-        self.figure, self.ax = plt.subplots(figsize=(6, 4))
-        self.canvas = FigureCanvasTkAgg(figure=self.figure, master=self)
-        # Clean up the canvas before closing the window
-        root_window.protocol("WM_DELETE_WINDOW", self.on_window_close)
+        self.view_model: Bar_Chart_ViewModel_API = viewmodel
 
         # Create a label in case of no task to display
-        self.message_label = tk.Label(
+        self.image_label = tk.Label(
             master=self,
-            text=self.view_model.message_no_item if hasattr(self.view_model,'message_no_item') else "No item",
-            font=("Helvetica", 16)
+            text=self.view_model.no_item_message,
+            font=("Helvetica", 14),
+            image=""
         )
 
         self.bound_tuples = Bound_List(
             name="bound_tuples",
-            observable_list=self.view_model.observable_list,
-            on_size_modified=self.view_update_canvas,
-            on_item_modified=self.view_update_canvas
+            observable_list=self.view_model.label_value_tuple_list,
+            on_size_modified=self.update_main_frame,
+            on_item_modified=self.update_main_frame
         )
-        self.view_update_canvas()   # engaging a first loading of the data
 
-    def on_window_close(self):
+        self.configure_event_id = None
+
+        atexit.register(self.on_closing)
+        self.run()
+
+    def on_closing(self):
         self.bound_tuples.unbind_list()
 
-        # Clean up the canvas
-        if hasattr(self, 'canvas'):
-            self.canvas.get_tk_widget().destroy()
-        self.quit()
+    def run(self):
+        self.update_main_frame()  # engaging a first loading of the data
+        self.bind("<Configure>", self.on_configure)
 
-    def view_update_canvas(self, index=None):
+    def on_configure(self, event):
+        # Resize the image only when the window size did not change for 50ms to avoid lags when resizing
+        if self.configure_event_id:
+            self.after_cancel(self.configure_event_id)
+        self.configure_event_id = self.after(50, self.resize_image)
+
+    def resize_image(self):
+        x_borders = 8  # 2 * 4
+        y_borders = 23  # 2 * 4 + 15 (text of label frame)
+        if len(self.bound_tuples) > 0:
+            self.set_image_label(super().winfo_width() - x_borders, super().winfo_height() - y_borders)
+
+    def update_main_frame(self, index=None):
+        self.image_label.pack_forget()  # Allow to the image to be resized properly
         if len(self.bound_tuples) == 0:
-            # Clear the previous graph if any
-            if hasattr(self, 'ax'):
-                self.ax.clear()
-            if hasattr(self, 'canvas'):
-                self.canvas.get_tk_widget().pack_forget()
-            self.message_label.pack(fill=tk.BOTH, expand=True)
+            self.set_text_label()
         else:
-            # Hide the "No tasks to display" label if it's currently packed
-            self.message_label.pack_forget()
+            self.set_image_label(600, 400)
+        self.image_label.pack(fill=tk.BOTH, expand=True)
 
-            item_labels, item_values = zip(*[(item_tuple[0], item_tuple[1]) for item_tuple in self.bound_tuples])
+    def set_text_label(self):
+        self.image_label.config(text=self.view_model.no_item_message, image="", padx=20)
+        self.image_label.image = None
 
-            # The highest bar will be the highest priority so the lowest value (the bigger is priority 1)
-            # if self.view_model.value_options = [1,2,3,4]
-            # value_labels = {'1'=4,'2'=3,'3'=2,'4'=1}
-            value_labels = defaultdict(int)
-            if hasattr(self.view_model, "value_options"):
-                if hasattr(self.view_model, "reversed_options") and self.view_model.reversed_options:
-                    for i, option in enumerate(self.view_model.value_options):
-                        value_labels[str(option)] = int(str(self.view_model.value_options[-1 - i]))
-                else:
-                    for i, option in enumerate(self.view_model.value_options):
-                        value_labels[str(option)] = int(str(option))
+    def set_image_label(self, width, height):
+        # Update the content of the new graph
+        image_data = self.design_chart(width, height)
 
-            # convert the item_values into values for graph (reversed)
-            graph_values = [value_labels[str(item_value)] for item_value in item_values]
+        # Create a PhotoImage object from the base64-encoded image
+        img = Image.open(io.BytesIO(image_data))
+        photo = ImageTk.PhotoImage(img)
 
-            # Clear the previous graph if any
-            if hasattr(self, 'ax'):
-                self.ax.clear()
+        # This line keeps a reference to the image to prevent it from being garbage collected
+        self.image_label.config(text="", image=photo, padx=0)
+        self.image_label.image = photo
 
-            # Create a new bar graph using pyplot
-            x_values = range(len(item_labels))
-            self.ax.bar(x_values, graph_values, color='skyblue')
+    def design_chart(self, width, height):
+        DPI = 100
+        # Create a new figure and axis
+        figure, ax = plt.subplots(figsize=(width / DPI, height / DPI), dpi=DPI)
 
-            # Label the axes
-            if hasattr(self.view_model, "value_name"):
-                self.ax.set_ylabel(self.view_model.value_name)
-            self.ax.set_yticks(list(value_labels.values()))
-            self.ax.set_yticklabels(list(value_labels.keys()))
+        item_labels, item_values = zip(*[(item[0], item[1]) for item in self.bound_tuples])
 
-            # Convert the range object to a list of integers
-            tick_positions = list(range(len(item_labels)))
-            # Wrap task names to fit the bar width
-            wrapped_item_labels = [textwrap.fill(item_label, width=16) for item_label in item_labels]
-            # Set the positions of the ticks and their labels
-            self.ax.set_xticks(tick_positions)
-            self.ax.set_xticklabels(wrapped_item_labels, rotation=45)
+        # The highest bar will be the highest priority so the lowest value (the bigger is priority 1)
+        # if self.value_options = [1,2,3,4]
+        # value_tags = {'1'=4,'2'=3,'3'=2,'4'=1}
+        value_tags = defaultdict(int)
+        if len(self.view_model.value_options) > 0:
+            if self.view_model.reversed_options:
+                for i, option in enumerate(self.view_model.value_options):
+                    value_tags[str(option)] = int(str(self.view_model.value_options[-1 - i]))
+            else:
+                for i, option in enumerate(self.view_model.value_options):
+                    value_tags[str(option)] = int(str(option))
 
-            # Auto Adjust the position of the graph within the figure according to the length of task names
-            max_len = max([len(n) for n in item_labels])
-            enlarge_bottom = 0.1 if max_len <= 4 \
-                else 0.2 if max_len <= 8 \
-                else 0.25 if max_len <= 16 \
-                else 0.3 if max_len <= 32 \
-                else 0.4
-            self.ax.figure.subplots_adjust(bottom=enlarge_bottom, top=0.95)
+        # convert the item_values into values for graph (reversed)
+        graph_values = [value_tags[str(item_value)] for item_value in item_values]
 
-            self.canvas.draw()
-            self.canvas.get_tk_widget().pack(fill=tk.BOTH, expand=True)
+        # Create a new bar graph using pyplot
+        x_values = range(len(item_labels))
+        ax.bar(x_values, graph_values, color='skyblue')
 
+        # Label the axes
+        ax.set_ylabel(self.view_model.value_name)
+        ax.set_yticks(list(value_tags.values()))
+        ax.set_yticklabels(list(value_tags.keys()))
+
+        # Convert the range object to a list of integers
+        tick_positions = list(range(len(item_labels)))
+        # Wrap task names to fit the bar width
+        wrapped_item_labels = [textwrap.fill(item_label, width=16) for item_label in item_labels]
+        # Set the positions of the ticks and their labels
+        ax.set_xticks(tick_positions)
+        ax.set_xticklabels(wrapped_item_labels, rotation=45)
+
+        # Auto Adjust the position of the graph within the figure according to the length of item labels
+        max_len = max([len(n) for n in item_labels])
+        enlarge_bottom = 0.1 if max_len <= 4 \
+            else 0.2 if max_len <= 8 \
+            else 0.25 if max_len <= 16 \
+            else 0.3 if max_len <= 32 \
+            else 0.4
+        ax.figure.subplots_adjust(bottom=enlarge_bottom, top=0.95)
+
+        # Create a BytesIO buffer to store the image in memory in binary
+        buffer = io.BytesIO()
+        # Save the plot in the BytesIO buffer instead of a file in binary
+        plt.savefig(buffer, format='png')
+        # Delete the figure and close the plot after saving it to the buffer
+        figure.clf()
+        plt.close()
+
+        # Retrieve the image data as a byte string
+        buffer.seek(0)
+        image_data = buffer.getvalue()
+        buffer.close()
+        return image_data
 
 
 if __name__ == "__main__":
 
-    class Model_Simulator:
-        def __init__(self):
-            print("init a task model")
-            self.tasks_list = [
-                ('Task 1', 1, datetime(2023, 7, 25, 20, 48, 22, 702207)),
-                ('Task 2', 2, datetime(2023, 7, 25, 20, 48, 22, 702208)),
-                ('Task 3', 3, datetime(2023, 7, 25, 20, 48, 22, 702209)),
-                ('Task 4', 4, datetime(2023, 7, 25, 20, 48, 22, 702210)),
-                ('Task 5', 5, datetime(2023, 7, 25, 20, 48, 22, 702209)),
-                ('Task 6', 1, datetime(2023, 7, 25, 20, 48, 22, 702210)),
-            ]
-            self.observers = []
+    import tkinter as tk
 
-        def add_observer(self, observer : callable):
-            self.observers.append(observer)
-            print(f"add_observer {observer=} on the task model")
+    from Observer_patterns.Observables import ObservableList, ObservableProperty
 
-        def create(self, task_name, task_priority):
-            print(f"create a task into the model : {task_name=} {task_priority=}")
-            self.tasks_list.append((task_name, task_priority, datetime(2023, 7, 25, 20, 48, 22, 702207)))
-            self.notify()
+    from Task_ViewModels_API import Bar_Chart_ViewModel_API
+    from Task_ViewModels_API import Two_Rows_ViewModel_API
+    from Task_ViewModels_API import Two_Columns_ViewModel_API
+    from Task_ViewModels_API import Button_List_ViewModel_API
 
-        def update(self, selected_item, new_name, new_priority):
-            print(f"update a task into the model : {selected_item=} {new_name=} {new_priority=}")
-            self.tasks_list[selected_item] = (new_name, new_priority, datetime(2023, 7, 25, 20, 48, 22, 702207))
-            self.notify()
+    def param_button_list_viewmodel(viewmodel: Button_List_ViewModel_API):
+        # The view should be limited to its API not to use GUI technology methods
 
-        def delete(self, selected_item):
-            print(f"delete a task from the model : {selected_item=} ")
-            self.tasks_list.__delitem__(selected_item)
-            self.notify()
+        # common
+        viewmodel.label_name = "label_name"
+        viewmodel.value_name = "value_name"
+        # one_button_frame
+        viewmodel.one_button_text = "one_button_text"
+        viewmodel.one_button_command = lambda: print("one_button_command clicked")
+        # main frame
+        viewmodel.label_value_list = ObservableList(["Text1", "Text2", "Text3", "Text4", "Text5"])
+        viewmodel.list_button1_text = "list_button1_text"
+        viewmodel.list_button1_command = lambda row: print("list_button1_command clicked row", row)
+        viewmodel.list_button2_text = 'list_button2_text'
 
-        def read(self):
-            print(f"reads tasks from the model : {self.tasks_list=}")
-            return self.tasks_list
+        # view.list_button2_command = lambda row: print("list_button2_command clicked", row)
+        def set_nouveau(row):
+            viewmodel.label_value_list[row].set("Nouveau")
 
-        def notify(self):
-            for observer in self.observers:
-                observer.notify()
+        viewmodel.list_button2_command = lambda row: (
+            set_nouveau(row),
+            print("list_button2_command clicked row", row)
+        )
+        # popup_window
+        viewmodel.action_name = "action_name"
+        viewmodel.label_var = ObservableProperty("label_var")
+        viewmodel.value_var = ObservableProperty("value_var")
+        viewmodel.value_options = ["1", "2", "3", "4", "5"]
+        viewmodel.state_entry = "normal"  # "normal/readonly"
+        viewmodel.button_left_text = "button_left_text"
+        viewmodel.button_left_command = lambda: print("button_left_command clicked")
+        viewmodel.button_right_text = "button_right_text"
+        viewmodel.button_right_command = lambda: print("button_right_command clicked")
 
-    # MODEL
-    from Task_CRUD_Model import Task_CRUD_Model
 
-    button_list_viewmodel = None
-    two_columns_viewmodel = None
-    two_rows_viewmodel = None
-    bar_chart_viewmodel = None
+    def param_two_columns_viewmodel(viewmodel: Two_Columns_ViewModel_API):
+        # The view should be limited to its API not to use GUI technology methods
 
-    def file_modified(*args, **kwargs):
-        """ Called when the file is modified """
-        if button_list_viewmodel:
-            button_list_viewmodel.notify(*args, **kwargs)
-        if two_columns_viewmodel:
-            two_columns_viewmodel.notify(*args, **kwargs)
-        if two_rows_viewmodel:
-            two_rows_viewmodel.notify(*args, **kwargs)
-        if bar_chart_viewmodel:
-            bar_chart_viewmodel.notify(*args, **kwargs)
+        # common
+        viewmodel.label_name = "label_name"
+        viewmodel.value_name = "value_name"
 
-    model_sim = Task_CRUD_Model(file_modified)  # Create a connection to the Model
-    # model_sim = Model_Simulator()
+        # new item frame
+        viewmodel.label_var = ObservableProperty("label_var_text")
+        viewmodel.value_var = ObservableProperty("value_var_text")
+        viewmodel.value_options = ["1", "2", "3", "4", "5"]
+        viewmodel.button_left_text = "button_left_text"  # "Add" / "Update"
+        viewmodel.button_left_command = lambda: print("button_left_command clicked")
+        viewmodel.button_left_state = "normal"  # "normal" / "disabled"
+        viewmodel.button_right_text = "button_right_text"
+        viewmodel.button_right_command = lambda: print("button_right_command clicked")
+        viewmodel.button_right_state = "disabled"  # "normal" / "disabled"
 
-    # VIEW MODEL
-    button_list_viewmodel = Button_List_ViewModel(model_sim)
-    two_columns_viewmodel = Two_Columns_ViewModel(model_sim)
-    two_rows_viewmodel = Two_Rows_ViewModel(model_sim)
-    bar_chart_viewmodel = Bar_Chart_ViewModel(model_sim)
+        # main frame
+        tuple_list = [("Label1", "Value1"), ("Label2", "Value2"), ("Label3", "Value3")]
+        viewmodel.label_value_tuple_list = ObservableList(tuple_list)
+        viewmodel.on_selected_items = lambda: print("on_selected_items clicked", viewmodel.selected_item_dict)
+        viewmodel.selected_item_dict.clear()  # dict[index_item] = item_tuple
 
-    # VIEW
-    view_1 = None
-    view_2 = None
-    view_3 = None
-    view_4 = None
 
-    # APP
-    window = tk.Tk()
-    window.title("Test Task Views")
-    window.config(background="grey")
-    #window.geometry("900x300")
+    def param_two_rows_viewmodel(viewmodel: Two_Rows_ViewModel_API):
+        # The view should be limited to its API not to use GUI technology methods
 
-    def on_closing():
-        if view_1:
-            view_1.on_closing()
-        if view_2:
-            view_2.on_closing()
-        if view_3:
-            view_3.on_closing()
-        if view_4:
-            view_4.on_closing()
-        window.quit()
+        # Main Frame
+        viewmodel.label_list = ObservableList(["Label1", "Label2", "Label3"])
+        viewmodel.on_label_return = lambda label, index: print("on_label_return tapped", label, index)
+        viewmodel.value_list = ObservableList(["Value1", "Value2", "Value3"])
+        viewmodel.on_modified_value = lambda value, index: print("on_modified_value clicked", value, index)
+        # New Item frame
+        viewmodel.label_var = ObservableProperty("label_var_text")
+        viewmodel.value_var = ObservableProperty("value_var_text")
+        viewmodel.value_options = ["1", "2", "3", "4", "5"]
+        viewmodel.button_text = "button_text"  # One button
+        viewmodel.button_command = lambda: print("button_command clicked")
 
-    # Clean up the binds before closing the window
-    window.protocol("WM_DELETE_WINDOW", on_closing)
 
-    view_1 = Two_Rows_View(window, two_rows_viewmodel)
-    view_2 = Bar_Chart_View(window, bar_chart_viewmodel)
-    view_3 = Button_List_View(window, button_list_viewmodel)
-    view_4 = Two_Columns_View(window, two_columns_viewmodel)
+    def param_bar_chart_viewmodel(viewmodel: Bar_Chart_ViewModel_API):
+        # The view should be limited to its API not to use GUI technology methods
 
-    # with pack
-    view_1.pack(side=tk.BOTTOM, fill=tk.BOTH, expand=True)
-    view_2.pack(side=tk.RIGHT, fill=tk.BOTH, expand=True)
-    view_3.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
-    view_4.pack(side=tk.RIGHT, fill=tk.BOTH, expand=True)
+        # Main Frame
+        viewmodel.value_name = "value_name"
+        viewmodel.value_options = ["1", "2", "3", "4", "5"]
+        viewmodel.reversed_options = False
+        viewmodel.no_item_message = "No item"
+        viewmodel.label_value_tuple_list = ObservableList([("Label1", "2"), ("Label2", "1"), ("Label3", "3")])
 
-    # # with grid
-    # view_1.grid(row=1, column=0, columnspan=3, sticky=tk.NSEW)
-    # view_2.grid(row=0,column=0, sticky=tk.NSEW)
-    # view_3.grid(row=0,column=1, sticky=tk.NSEW)
-    # view_4.grid(row=0,column=2, sticky=tk.NSEW)
-    # # How to react by window resizing
-    # window.grid_columnconfigure(0, weight=2)
-    # window.grid_columnconfigure(1, weight=1)
-    # window.grid_columnconfigure(2, weight=1)
-    # window.grid_rowconfigure(0, weight=3)
-    # window.grid_rowconfigure(1, weight=1)
 
-    window.mainloop()
+    def open_window():
+        win = tk.Tk()
+        win.title("Test Task Views")
+        win.config(background="grey")
+        return win
+
+
+    try:
+        while True:
+            print("1. Button_List_View")
+            print("2. Two_Columns_View")
+            print("3. Two_Rows_View")
+            print("4. Bar_Chart_View")
+            print("0. Quit")
+            choice = input("Your choice : ")
+
+            if choice == "1":
+                window = open_window()
+
+                button_list_viewmodel = Button_List_ViewModel_API()
+                param_button_list_viewmodel(button_list_viewmodel)
+
+                button_list_view = Button_List_View(window, button_list_viewmodel)
+                button_list_view.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+
+                window.mainloop()
+
+            elif choice == "2":
+                window = open_window()
+
+                two_columns_viewmodel = Two_Columns_ViewModel_API()
+                param_two_columns_viewmodel(two_columns_viewmodel)
+
+                two_columns_view = Two_Columns_View(window, two_columns_viewmodel)
+                two_columns_view.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+
+                window.mainloop()
+
+            elif choice == "3":
+                window = open_window()
+
+                two_rows_viewmodel = Two_Rows_ViewModel_API()
+                param_two_rows_viewmodel(two_rows_viewmodel)
+
+                two_rows_view = Two_Rows_View(window, two_rows_viewmodel)
+                two_rows_view.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+
+                window.mainloop()
+
+            elif choice == "4":
+                window = open_window()
+
+                bar_chart_viewmodel = Bar_Chart_ViewModel_API()
+                param_bar_chart_viewmodel(bar_chart_viewmodel)
+
+                bar_chart_view = Bar_Chart_View(window, bar_chart_viewmodel)
+                bar_chart_view.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+
+                window.mainloop()
+
+            elif choice == "0":
+                break
+
+            else:
+                print("This option is not available")
+
+    except KeyboardInterrupt:
+        pass

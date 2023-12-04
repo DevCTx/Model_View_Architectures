@@ -1,5 +1,4 @@
 from datetime import datetime
-from typing import Callable
 
 from Generic_Models.Generic_CRUD_Model import Generic_CRUD_Model
 from Generic_Models.Generic_CSV_CRUD_Model import Generic_CSV_CRUD_Model
@@ -27,7 +26,7 @@ class Task(metaclass=Json_Object_Meta):     # needed for Generic_JSON_CRUD_Model
         return f"{self.read_format()}"
 
 
-class Task_CRUD_Model(Generic_CRUD_Model):
+class Task_CRUD_Model(Generic_SQLITE3_CRUD_Model):
     """
     Create a complete CRUD Model for storing 'Task' Object in :
     - a CSV File named 'Task.csv' if it inherits from 'Generic_CSV_CRUD_Model'
@@ -37,7 +36,7 @@ class Task_CRUD_Model(Generic_CRUD_Model):
     _ a simple list if it inherits from 'Generic_CRUD_Model'
     """
 
-    def __init__(self, notify_function: Callable = None):
+    def __init__(self, notify_function: callable = None):
         super().__init__(Task, notify_function)
 
     def create(self, title: str, priority: int):
@@ -51,7 +50,7 @@ class Task_CRUD_Model(Generic_CRUD_Model):
 if __name__ == "__main__":
 
     class Model_User:
-        def __init__(self, model, notify_function: Callable):
+        def __init__(self, model, notify_function: callable):
             self.model = model
             self.notify_function = notify_function
 

@@ -73,7 +73,6 @@ class BoundTk_ListVar(list):
         """ should be used on_closing window """
         for _tk_variable in self:
             _tk_variable.unbind_tk_var()   # ObservableProperty unbind
-        print(f"\n{self.name} unbind_list")
         self._property_list.unbind_list()
 
 
