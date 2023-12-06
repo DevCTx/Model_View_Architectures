@@ -6,7 +6,7 @@ from tkinter import ttk
 from PIL import Image, ImageTk
 
 import matplotlib
-# Avoid UserWarning: Starting a Matplotlib GUI outside of the main thread will likely fail.
+# Avoid UserWarning: Starting a Matplotlib GUI outside the main thread will likely fail.
 matplotlib.use('agg')
 from matplotlib import pyplot as plt
 
@@ -90,7 +90,7 @@ class Button_List_View(tk.LabelFrame):
 
     def update_tasks_canvas(self):
         # Just refresh the list by reading the data
-        self.tasks_list = self.controller.update_tasks_for_button_list()
+        self.tasks_list = self.controller.get_task_list()
 
         # Clear the previous widgets inside the tasks_frame if any
         for widget in self.scrollable_table.winfo_children():
@@ -336,7 +336,7 @@ class Two_Columns_View(tk.LabelFrame):
         self.tree.delete(*self.tree.get_children())
 
         # Insert the tasks from the model
-        task_list = self.controller.update_tasks_for_tree()
+        task_list = self.controller.get_task_list()
         for task in task_list:
             self.tree.insert("", tk.END, values=task, tags=task)  # 'tags' converts the values to compatible str
 
@@ -449,7 +449,7 @@ class Two_Rows_View(tk.LabelFrame):
 
     def update_tasks_canvas(self):
         # Get the data from the model through the controller
-        self.tasks_list = self.controller.update_tasks_for_table()
+        self.tasks_list = self.controller.get_task_list()
 
         # Clear the previous widgets inside the scrollable_table if any
         for widget in self.scrollable_table.winfo_children():
@@ -573,7 +573,7 @@ class Bar_Chart_View(tk.LabelFrame):
             self.set_image_label(super().winfo_width() - x_borders, super().winfo_height() - y_borders)
 
     def refresh_image_label(self):
-        self.tasks = self.controller.update_tasks_for_barchart()
+        self.tasks = self.controller.get_task_list()
 
         self.image_label.pack_forget()  # Allow to the image to be resized properly
         if len(self.tasks) == 0:

@@ -63,7 +63,7 @@ class Button_List_Controller(Main_Controller):
     def delete_button(self, selected_item):
         self._delete_task(selected_item)
 
-    def update_tasks_for_button_list(self):
+    def get_task_list(self):
         return self._read_tasks()
 
 
@@ -88,7 +88,7 @@ class Two_Columns_Controller(Main_Controller):
     def delete_button(self, selected_item):
         self._delete_task(selected_item)
 
-    def update_tasks_for_tree(self):
+    def get_task_list(self):
         return self._read_tasks()
 
 
@@ -116,7 +116,7 @@ class Two_Rows_Controller(Main_Controller):
     def update_priority(self, selected_item, same_task_name, new_task_priority):
         self._update_task(selected_item, same_task_name, new_task_priority)
 
-    def update_tasks_for_table(self):
+    def get_task_list(self):
         return self._read_tasks()
 
 
@@ -132,7 +132,7 @@ class Bar_Chart_Controller(Main_Controller):
     def on_closing(self):
         self.tasks.remove_observer(self.observer)
 
-    def update_tasks_for_barchart(self):
+    def get_task_list(self):
         return self._read_tasks()
 
 
@@ -163,7 +163,7 @@ if __name__ == "__main__":
 
     # Create a first task
     controller.add_button("A first task", "3")
-    task_list = controller.update_tasks_for_tree()
+    task_list = controller.get_task_list()
     print(task_list, end='\n\n')
     # Output:
     # [('A first task', '3', '2023-09-19 16:43:55.647454')]
@@ -171,7 +171,7 @@ if __name__ == "__main__":
 
     # Create a second task
     controller.add_button("A second task", "6")
-    task_list = controller.update_tasks_for_tree()
+    task_list = controller.get_task_list()
     print(task_list, end='\n\n')
     # Output:
     # [('A first task', '3', '2023-09-19 16:43:55.647454'),
@@ -181,7 +181,7 @@ if __name__ == "__main__":
     # Update the second task
     item_tuple = task_list[1]
     controller.update_button(item_tuple, "A modified task", 4)
-    task_list = controller.update_tasks_for_tree()
+    task_list = controller.get_task_list()
     print(task_list, end='\n\n')
     # Output:
     # [('A first task', '3', '2023-09-19 16:43:55.647454'),
@@ -191,7 +191,7 @@ if __name__ == "__main__":
     # Delete the first task
     item_tuple = task_list[0]
     controller.delete_button(item_tuple)
-    task_list = controller.update_tasks_for_tree()
+    task_list = controller.get_task_list()
     print(task_list, end='\n\n')
     # Output:
     # [('A modified task', '4', '2023-09-19 16:43:55.681733')]
@@ -213,7 +213,7 @@ if __name__ == "__main__":
         try:
             while True:
                 time.sleep(1)
-                task_list = controller.update_tasks_for_tree()
+                task_list = controller.get_task_list()
                 print(task_list, end='\n\n')
         except KeyboardInterrupt:
             pass

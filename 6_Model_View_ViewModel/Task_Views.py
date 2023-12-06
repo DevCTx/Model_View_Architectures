@@ -532,10 +532,9 @@ class Bar_Chart_View(tk.LabelFrame):
             on_size_modified=self.update_main_frame,
             on_item_modified=self.update_main_frame
         )
+        atexit.register(self.on_closing)
 
         self.configure_event_id = None
-
-        atexit.register(self.on_closing)
         self.run()
 
     def on_closing(self):
