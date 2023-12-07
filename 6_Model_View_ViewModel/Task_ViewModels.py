@@ -7,10 +7,7 @@ from Task_ViewModels_API import Two_Rows_ViewModel_API
 from Task_ViewModels_API import Two_Columns_ViewModel_API
 from Task_ViewModels_API import Button_List_ViewModel_API
 
-from Task_Controllers import Button_List_Controller
-from Task_Controllers import Two_Rows_Controller
-from Task_Controllers import Two_Columns_Controller
-from Task_Controllers import Bar_Chart_Controller
+from Task_Controller import Task_Controller
 
 
 class Button_List_ViewModel(Button_List_ViewModel_API):
@@ -19,7 +16,7 @@ class Button_List_ViewModel(Button_List_ViewModel_API):
         super().__init__()
 
         # delegate all interactions with the model to the Controller
-        self.controller = Button_List_Controller(task_model, self.notify)
+        self.controller = Task_Controller(task_model, self.notify)
         self.task_list = []
 
         # common
@@ -58,7 +55,7 @@ class Button_List_ViewModel(Button_List_ViewModel_API):
         self.refreshing = False
 
     def update_and_format_task_list(self):
-        self.task_list = self.controller.get_task_list()
+        self.task_list = self.controller.read_tasks()
         return [f"{task[0]}, {self.value_name} {task[1]}" for task in self.task_list]
 
     def reset_popup_var(self):
@@ -95,20 +92,20 @@ class Button_List_ViewModel(Button_List_ViewModel_API):
 
     def handle_add_button(self):
         if len(self.label_var.get()) > 0:
-            self.controller.add_button(self.label_var.get(), self.value_var.get())
+            self.controller.create_task(self.label_var.get(), self.value_var.get())
 
     def handle_update_button(self, item_id):
         if 0 <= item_id < len(self.task_list):
             if len(self.label_var.get()) > 0:
                 # Find the corresponding task in the model and update it
                 selected_task_tuple = self.task_list[item_id]
-                self.controller.update_button(selected_task_tuple, self.label_var.get(), self.value_var.get())
+                self.controller.update_task(selected_task_tuple, self.label_var.get(), self.value_var.get())
 
     def handle_delete_button(self, item_id):
         if 0 <= item_id < len(self.task_list):
             # Find the corresponding task in the model and update it
             selected_task_tuple = self.task_list[item_id]
-            self.controller.delete_button(selected_task_tuple)
+            self.controller.delete_task(selected_task_tuple)
 
     def refresh(self):
         self.refreshing = True
@@ -126,7 +123,7 @@ class Two_Columns_ViewModel(Two_Columns_ViewModel_API):
         super().__init__()
 
         # delegate all interactions with the model to the Controller
-        self.controller = Two_Columns_Controller(task_model, self.notify)
+        self.controller = Task_Controller(task_model, self.notify)
         self.task_list = []
 
         # common
@@ -154,7 +151,7 @@ class Two_Columns_ViewModel(Two_Columns_ViewModel_API):
         self.refreshing = False
 
     def update_and_format_task_list(self):
-        self.task_list = self.controller.get_task_list()
+        self.task_list = self.controller.read_tasks()
         return [(str(task[0]), str(task[1])) for task in self.task_list]   # tree 2 colonnes
 
     def on_selected_items(self):
@@ -185,12 +182,12 @@ class Two_Columns_ViewModel(Two_Columns_ViewModel_API):
 
     def handle_add_button(self):
         if len(self.label_var.get()) > 0:
-            self.controller.add_button(self.label_var.get(), self.value_var.get())
+            self.controller.create_task(self.label_var.get(), self.value_var.get())
 
     def handle_update_button(self):
         if len(self.label_var.get()) > 0:
             item_index = list(self.selected_item_dict.keys())[0]
-            self.controller.update_button(
+            self.controller.update_task(
                 self.task_list[item_index],
                 self.label_var.get(),
                 self.value_var.get()
@@ -198,7 +195,7 @@ class Two_Columns_ViewModel(Two_Columns_ViewModel_API):
 
     def handle_delete_button(self):
         item_index = list(self.selected_item_dict.keys())[0]
-        self.controller.delete_button(self.task_list[item_index])
+        self.controller.delete_task(self.task_list[item_index])
 
     def refresh(self):
         self.refreshing = True
@@ -218,7 +215,7 @@ class Two_Rows_ViewModel(Two_Rows_ViewModel_API):
         super().__init__()
 
         # delegate all interactions with the model to the Controller
-        self.controller = Two_Rows_Controller(task_model, self.notify)
+        self.controller = Task_Controller(task_model, self.notify)
         self.task_list = []
 
         # New Item frame
@@ -242,7 +239,7 @@ class Two_Rows_ViewModel(Two_Rows_ViewModel_API):
         self.refreshing = False
 
     def update_task_list(self):
-        self.task_list = self.controller.get_task_list()
+        self.task_list = self.controller.read_tasks()
 
     def format_label_list(self):
         return [str(task[0]) for task in self.task_list]
@@ -258,7 +255,7 @@ class Two_Rows_ViewModel(Two_Rows_ViewModel_API):
         new_label = self.label_var.get()
         new_value = self.value_var.get()
         if len(self.label_var.get()) > 0:
-            self.controller.add_button(new_label, new_value)
+            self.controller.create_task(new_label, new_value)
         self.reset_var()
 
     def on_label_return(self, new_label_on_col, item_id):
@@ -266,15 +263,15 @@ class Two_Rows_ViewModel(Two_Rows_ViewModel_API):
             selected_task_tuple = self.task_list[item_id]
             same_value = selected_task_tuple[1]
             if len(new_label_on_col) > 0:   # Update
-                self.controller.update_label(selected_task_tuple, new_label_on_col, same_value)
+                self.controller.update_task(selected_task_tuple, new_label_on_col, same_value)
             else:   # Delete
-                self.controller.delete_label(selected_task_tuple)
+                self.controller.delete_task(selected_task_tuple)
 
     def on_modified_value(self, new_value_on_col, item_id):
         if 0 <= item_id < len(self.task_list):
             selected_task_tuple = self.task_list[item_id]
             same_label = selected_task_tuple[0]
-            self.controller.update_priority(selected_task_tuple, same_label, new_value_on_col)
+            self.controller.update_task(selected_task_tuple, same_label, new_value_on_col)
 
     def refresh(self):
         self.refreshing = True
@@ -295,7 +292,7 @@ class Bar_Chart_ViewModel(Bar_Chart_ViewModel_API):
         super().__init__()
 
         # delegate all interactions with the model to the Controller
-        self.controller = Bar_Chart_Controller(task_model, self.notify)
+        self.controller = Task_Controller(task_model, self.notify)
         self.task_list = []
 
         # main frame
@@ -309,7 +306,7 @@ class Bar_Chart_ViewModel(Bar_Chart_ViewModel_API):
         self.refreshing = False
 
     def update_and_format_task_list(self):
-        self.task_list = self.controller.get_task_list()
+        self.task_list = self.controller.read_tasks()
         return [(str(task[0]), str(task[1])) for task in self.task_list]  # (label, value) as string
 
     def refresh(self):
