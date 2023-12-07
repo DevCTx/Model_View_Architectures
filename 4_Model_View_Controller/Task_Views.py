@@ -10,10 +10,7 @@ import matplotlib
 matplotlib.use('agg')
 from matplotlib import pyplot as plt
 
-from Task_Controllers import Button_List_Controller
-from Task_Controllers import Two_Rows_Controller
-from Task_Controllers import Two_Columns_Controller
-from Task_Controllers import Bar_Chart_Controller
+from Task_Controllers import Task_Controller
 
 
 class Button_List_View(tk.LabelFrame):
@@ -22,7 +19,7 @@ class Button_List_View(tk.LabelFrame):
         super().__init__(root_window, text=self.__class__.__name__, labelanchor=tk.NW, **kwargs)
 
         # delegate all interactions with the model to the Controller
-        self.controller = Button_List_Controller(task_model, self.notify)
+        self.controller = Task_Controller(task_model, self.notify)
 
         self.popup_window = None
         self.create_the_new_task_frame()
@@ -90,7 +87,7 @@ class Button_List_View(tk.LabelFrame):
 
     def update_tasks_canvas(self):
         # Just refresh the list by reading the data
-        self.tasks_list = self.controller.get_task_list()
+        self.tasks_list = self.controller.read_tasks()
 
         # Clear the previous widgets inside the tasks_frame if any
         for widget in self.scrollable_table.winfo_children():
@@ -173,20 +170,20 @@ class Button_List_View(tk.LabelFrame):
 
     def popup_add_button(self):
         if len(self.entry_var.get()) > 0:
-            self.controller.add_button(self.entry_var.get(), self.priority_var.get())
+            self.controller.create_task(self.entry_var.get(), self.priority_var.get())
 
     def popup_update_button(self, task_id):
         if 0 <= task_id < len(self.tasks_list):
             if len(self.entry_var.get()) > 0:
                 # Find the corresponding task in the model and update it
                 selected_task_tuple = self.tasks_list[task_id]
-                self.controller.update_button(selected_task_tuple, self.entry_var.get(), self.priority_var.get())
+                self.controller.update_task(selected_task_tuple, self.entry_var.get(), self.priority_var.get())
 
     def popup_delete_button(self, task_id):
         if 0 <= task_id < len(self.tasks_list):
             # Find the corresponding task in the model and update it
             selected_task_tuple = self.tasks_list[task_id]
-            self.controller.delete_button(selected_task_tuple)
+            self.controller.delete_task(selected_task_tuple)
 
     def popup_cancel_button(self):
         self.refresh()
@@ -214,7 +211,7 @@ class Two_Columns_View(tk.LabelFrame):
         super().__init__(root_window, text=self.__class__.__name__, labelanchor=tk.NW, **kwargs)
 
         # delegate all interactions with the model to the Controller
-        self.controller = Two_Columns_Controller(task_model, self.notify)
+        self.controller = Task_Controller(task_model, self.notify)
 
         self.entry_var = None
         self.priority_var = None
@@ -265,14 +262,14 @@ class Two_Columns_View(tk.LabelFrame):
     def handle_add_update(self):
         if len(self.entry_var.get()) > 0:
             if self.add_update_button['text'] == "Add":
-                self.controller.add_button(self.entry_var.get(), self.priority_var.get())
+                self.controller.create_task(self.entry_var.get(), self.priority_var.get())
             else:  # Update
                 values_item = self.tree.item(self.selected_item, "tags")
-                self.controller.update_button(values_item, self.entry_var.get(), self.priority_var.get())
+                self.controller.update_task(values_item, self.entry_var.get(), self.priority_var.get())
 
     def handle_delete(self):
         values_item = self.tree.item(self.selected_item, "tags")
-        self.controller.delete_button(values_item)
+        self.controller.delete_task(values_item)
 
     def clear_selection_and_input_fields(self):
         if self.tree:
@@ -336,7 +333,7 @@ class Two_Columns_View(tk.LabelFrame):
         self.tree.delete(*self.tree.get_children())
 
         # Insert the tasks from the model
-        task_list = self.controller.get_task_list()
+        task_list = self.controller.read_tasks()
         for task in task_list:
             self.tree.insert("", tk.END, values=task, tags=task)  # 'tags' converts the values to compatible str
 
@@ -360,7 +357,7 @@ class Two_Rows_View(tk.LabelFrame):
         super().__init__(root_window, text=self.__class__.__name__, labelanchor=tk.NW, **kwargs)
 
         # delegate all interactions with the model to the Controller
-        self.controller = Two_Rows_Controller(task_model, self.notify)
+        self.controller = Task_Controller(task_model, self.notify)
 
         self.entry_var_new = None
         self.priority_var_new = None
@@ -409,7 +406,7 @@ class Two_Rows_View(tk.LabelFrame):
 
     def handle_add_task(self):
         if len(self.entry_var_new.get()) > 0:
-            self.controller.add_button(self.entry_var_new.get(), self.priority_var_new.get())
+            self.controller.create_task(self.entry_var_new.get(), self.priority_var_new.get())
 
     def create_the_main_task_frame(self):
         # create a Frame containing the table and the scrolling bar
@@ -449,7 +446,7 @@ class Two_Rows_View(tk.LabelFrame):
 
     def update_tasks_canvas(self):
         # Get the data from the model through the controller
-        self.tasks_list = self.controller.get_task_list()
+        self.tasks_list = self.controller.read_tasks()
 
         # Clear the previous widgets inside the scrollable_table if any
         for widget in self.scrollable_table.winfo_children():
@@ -514,16 +511,16 @@ class Two_Rows_View(tk.LabelFrame):
             new_entry_on_col = self.entry_var_list[column].get()
             priority_on_col = task_to_modify[1]
             if len(new_entry_on_col) > 0:
-                self.controller.update_label(task_to_modify, new_entry_on_col, priority_on_col)
+                self.controller.update_task(task_to_modify, new_entry_on_col, priority_on_col)
             else:
-                self.controller.delete_label(task_to_modify)
+                self.controller.delete_task(task_to_modify)
 
     def update_priority(self, column):
         if 0 <= column < len(self.tasks_list):
             task_to_modify = self.tasks_list[column]
             entry_on_col = task_to_modify[0]
             new_priority_on_col = self.priority_var_list[column].get()
-            self.controller.update_priority(task_to_modify, entry_on_col, new_priority_on_col)
+            self.controller.update_task(task_to_modify, entry_on_col, new_priority_on_col)
 
     def refresh(self):
         self.refreshing = True
@@ -544,7 +541,7 @@ class Bar_Chart_View(tk.LabelFrame):
     def __init__(self, root_window, task_model, **kwargs):
         super().__init__(root_window, text=self.__class__.__name__, labelanchor=tk.NW, **kwargs)
 
-        self.controller = Bar_Chart_Controller(task_model, self.notify)
+        self.controller = Task_Controller(task_model, self.notify)
         self.tasks = []
 
         self.image_label = tk.Label(
@@ -573,7 +570,7 @@ class Bar_Chart_View(tk.LabelFrame):
             self.set_image_label(super().winfo_width() - x_borders, super().winfo_height() - y_borders)
 
     def refresh_image_label(self):
-        self.tasks = self.controller.get_task_list()
+        self.tasks = self.controller.read_tasks()
 
         self.image_label.pack_forget()  # Allow to the image to be resized properly
         if len(self.tasks) == 0:

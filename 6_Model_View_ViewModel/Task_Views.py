@@ -8,7 +8,7 @@ import tkinter as tk
 from PIL import Image, ImageTk
 import matplotlib
 
-# Avoid UserWarning: Starting a Matplotlib GUI outside of the main thread will likely fail.
+# Avoid UserWarning: Starting a Matplotlib GUI outside the main thread will likely fail.
 matplotlib.use('agg')
 from matplotlib import pyplot as plt
 
