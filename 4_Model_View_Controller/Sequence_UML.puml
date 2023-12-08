@@ -20,6 +20,8 @@ activate window
 App -> task_model : init()
 activate task_model
 task_model -> task_model : Observable:init()
+activate task_model
+deactivate task_model
 task_model -> file_observer : Observer:schedule()
 activate file_observer
 file_observer -> file_or_database : Thread:FileObserverHandler.start()
@@ -37,8 +39,12 @@ activate bar_chart_controller
 bar_chart_controller -> task_model : add_observer()
 activate task_model
 task_model --> task_model : observers.append()
-bar_chart_controller --> bar_chart_controller : atexit.register(on_closing)
+activate task_model
 deactivate task_model
+bar_chart_controller --> bar_chart_controller : atexit.register(on_closing)
+activate bar_chart_controller
+deactivate task_model
+deactivate bar_chart_controller
 deactivate bar_chart_controller
 
 App -> two_rows_view : init()
@@ -50,7 +56,11 @@ activate two_rows_controller
 two_rows_controller -> task_model : add_observer()
 activate task_model
 task_model --> task_model : observers.append()
+activate task_model
+deactivate task_model
 two_rows_controller --> two_rows_controller : atexit.register(on_closing)
+activate two_rows_controller
+deactivate two_rows_controller
 deactivate task_model
 deactivate two_rows_controller
 App -> window : mainloop()
@@ -70,6 +80,8 @@ deactivate two_rows_controller
 activate task_model
 task_model -> file_or_database : INSERT()
 task_model -> task_model : notify_observers()
+activate task_model
+deactivate task_model
 
 ====
 ' Label Update / Task Deletion Process
@@ -83,6 +95,8 @@ two_rows_controller -> task_model : update()
 deactivate two_rows_controller
 task_model -> file_or_database : UPDATE()
 task_model -> task_model : notify_observers()
+activate task_model
+deactivate task_model
 else
 two_rows_view -> two_rows_controller : delete_task()
 deactivate two_rows_view
@@ -91,6 +105,8 @@ two_rows_controller -> task_model : delete()
 deactivate two_rows_controller
 task_model -> file_or_database : DELETE()
 task_model -> task_model : notify_observers()
+activate task_model
+deactivate task_model
 end
 
 ====
@@ -105,6 +121,8 @@ two_rows_controller -> task_model : update()
 deactivate two_rows_controller
 task_model -> file_or_database : UPDATE
 task_model -> task_model : notify_observers()
+activate task_model
+deactivate task_model
 
 ====
 ' File Database Modified Outside The App Scope
@@ -160,9 +178,13 @@ activate bar_chart_view
 bar_chart_view -> bar_chart_controller : del()
 activate bar_chart_controller
 bar_chart_controller --> bar_chart_controller : atexit:on_closing()
+activate bar_chart_controller
+deactivate bar_chart_controller
 bar_chart_controller -> task_model : remove_observer()
 activate task_model
 task_model --> task_model : observers.remove()
+activate task_model
+deactivate task_model
 deactivate task_model
 deactivate bar_chart_controller
 deactivate bar_chart_view
@@ -172,9 +194,13 @@ activate two_rows_view
 two_rows_view -> two_rows_controller : del()
 activate two_rows_controller
 two_rows_controller --> two_rows_controller : atexit:on_closing()
+activate two_rows_controller
+deactivate two_rows_controller
 two_rows_controller -> task_model : remove_observer()
 activate task_model
 task_model --> task_model : observers.remove()
+activate task_model
+deactivate task_model
 deactivate task_model
 deactivate two_rows_controller
 deactivate two_rows_view
