@@ -1,5 +1,14 @@
-````plantuml:md-sample-sequence
-!include ./Sequence_UML.puml
-````
 
-![](./md-sample-sequence.svg)
+![[firstDiagram.png]]
+<details>
+
+```plantuml
+@startuml firstDiagram
+
+Alice -> Bob: Hello
+Bob -> Alice: Hi!
+		
+@enduml
+```
+
+</details>
