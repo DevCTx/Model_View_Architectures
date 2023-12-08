@@ -1,5 +1,4 @@
-
-@startuml
+```plantuml
 
 title Model View Controller
 
@@ -189,4 +188,4 @@ file_observer -> task_model : Thread stopped
 deactivate file_observer
 deactivate task_model
 
-@enduml
+```
