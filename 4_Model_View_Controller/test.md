@@ -5,7 +5,7 @@
 ```plantuml
 @startuml firstDiagram
 
-Alice -> Bob: Hello
+Alice -> Bob: Hello!
 Bob -> Alice: Hi!
 		
 @enduml
