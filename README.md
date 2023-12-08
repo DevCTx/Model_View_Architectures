@@ -10,7 +10,7 @@ especially when they are represented in their simplest forms, widely distributed
 They nonetheless have their own characteristics and often result from a certain logical progression when we take a 
 closer look.
 
-The objective of this repository is thus to provide some examples to facilitate this understanding and highlight the 
+The objective of this repository is to provide some examples to facilitate this understanding and highlight the 
 distinctions between the 3 major Model-View architectures :
 * **Model-View-Controller (MVC)**
 * **Model-View-Presenter (MVP)**
