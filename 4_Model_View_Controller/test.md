@@ -1,4 +1,4 @@
-````plantuml
+````plantuml:md-sample-sequence
 !include ./Sequence_UML.puml
 ````
 
