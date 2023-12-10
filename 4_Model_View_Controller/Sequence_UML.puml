@@ -1,6 +1,6 @@
 @startuml
 
-title Task Manager with 2 Views in Model View Controller Version
+title "Task Manager as Model View Controller"
 
 participant window
 participant App
