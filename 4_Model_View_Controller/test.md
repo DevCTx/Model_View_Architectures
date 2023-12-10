@@ -1,5 +1,4 @@
 ```mermaid
-%%{init: { "theme": "default" } }%%
 sequenceDiagram        
     title Model View Controller
     
