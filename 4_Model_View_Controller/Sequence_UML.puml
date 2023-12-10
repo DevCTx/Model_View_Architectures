@@ -1,6 +1,6 @@
 @startuml
 
-title Model View Controller
+title Task Manager with 2 Views in Model View Controller Version
 
 participant window
 participant App
@@ -26,8 +26,6 @@ task_model -> file_observer : Observer:schedule()
 activate file_observer
 file_observer -> file_or_database : Thread:FileObserverHandler.start()
 deactivate file_observer
-
-
 
 App -> bar_chart_view : init()
 deactivate task_model
