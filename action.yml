@@ -7,7 +7,7 @@ inputs:
     default: '.'
   message:
     description: 'the commit message when committing generated images'
-    default: 'Render PlantUML files'
+    default: 'Render PlantUML file'
 runs:
   using: 'node12'
   main: 'dist/index.js'
