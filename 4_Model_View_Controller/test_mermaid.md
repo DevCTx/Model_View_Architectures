@@ -1,6 +1,11 @@
 ```mermaid
-sequenceDiagram        
-    title Model View Controller
+%%{ init: {
+    'theme': 'neutral',
+    'themeVariables':
+        { 'fontSize': '12px', 'fontFamily': 'Inter'}
+} }%%
+sequenceDiagram
+    title "Model View Controller"
     
     participant window
     participant App
