@@ -19,13 +19,13 @@ Foo1 -> Foo6 : To collections
 ![](./md-sample-sequence.svg)
 
 ```plantuml
-!includeurl ./sample-sequence.puml
+!include ./sample-sequence.puml
 ```
 
 ![](./sample-sequence.svg)
 
 ```plantuml:sample-sequence
-!includeurl ./sample-sequence.puml
+!include ./sample-sequence.puml
 ```
 
 ![](./sample-sequence.svg)
